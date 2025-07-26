@@ -1,4 +1,5 @@
-from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QFileDialog, QLabel, QProgressBar, QSlider
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QFileDialog, QLabel, QProgressBar, QSlider, \
+    QHBoxLayout, QStyleFactory
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtCore import QUrl, Qt
 
@@ -7,14 +8,15 @@ class AudioPlayer(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("PyQt6 Mediaplayer")
-        self.setMinimumWidth(400)
-        self.setFixedHeight(400)
+        self.setMinimumWidth(800)
+        self.setMinimumHeight(400)
 
         self.player = QMediaPlayer()
         self.audio_output = QAudioOutput()
         self.player.setAudioOutput(self.audio_output)
 
         # UI
+        mainLayout = QHBoxLayout()
         layout = QVBoxLayout()
         self.media_label = QLabel("Titel")
         self.button_open = QPushButton("Datei öffnen")
@@ -40,14 +42,30 @@ class AudioPlayer(QWidget):
         self.player.positionChanged.connect(lambda p: self.update_progress_bar(p))
 
 
-        layout.addWidget(self.media_label)
         layout.addWidget(self.button_open)
+        layout.setSpacing(5)
         layout.addWidget(self.button_detach)
         layout.addWidget(self.button_play)
         layout.addWidget(self.button_stop)
+        layout.addStretch()
         layout.addWidget(self.slider)
-        layout.addWidget(self.progress)
-        self.setLayout(layout)
+        lLayout = QWidget()
+        rLayout = QWidget()
+        haupt = QVBoxLayout()
+        haupt.addWidget(self.media_label)
+        haupt.addStretch()
+        lLayout.setLayout(haupt)
+        rLayout.setLayout(layout)
+        rLayout.setFixedWidth(200)
+
+        mainLayout.addWidget(rLayout)
+        mainLayout.addWidget(lLayout)
+
+
+        layout.setStretch(0,0)
+        layout.setStretch(1,1)
+
+        self.setLayout(mainLayout)
 
     def detach_source(self):
         self.stop()
@@ -58,6 +76,7 @@ class AudioPlayer(QWidget):
         self.button_play.setDisabled(True)
         self.button_stop.setDisabled(True)
         self.button_detach.setDisabled(True)
+        self.media_label.setText("Keine Datei geladen!")
 
     def init_progress_bar(self, duration):
         self.progress.setMaximum(duration)
@@ -100,6 +119,7 @@ class AudioPlayer(QWidget):
 
 
 app = QApplication([])
+app.setStyle(QStyleFactory.create('Fusion'))
 window = AudioPlayer()
 window.show()
 app.exec()
