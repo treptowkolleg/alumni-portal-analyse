@@ -12,7 +12,7 @@ from threading import Thread
 from queue import Queue
 
 # === Konfiguration ===
-BLOCK_DURATION = 60               # Aufnahmezeit pro Block (Sekunden) – z. B. 300 = 5 Minuten
+BLOCK_DURATION = 120               # Aufnahmezeit pro Block (Sekunden) – z. B. 300 = 5 Minuten
 SAMPLERATE = 16000
 MODEL_SIZE = "medium"             # Whisper: tiny, base, small, medium, large-v2
 # OLLAMA_MODEL = "mistral"

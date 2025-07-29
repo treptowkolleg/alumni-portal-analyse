@@ -5,16 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d3bfe025-3d27-4cb9-9976-011e2bbcd746" name="Changes" comment="add media player">
-      <change afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/sqldialects.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/log.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/log2.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/log3.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/summary.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test.http" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/protokolle.db" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/use_existing.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/log2.py" beforeDir="false" afterPath="$PROJECT_DIR$/log2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/log3.py" beforeDir="false" afterPath="$PROJECT_DIR$/log3.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/summary.md" beforeDir="false" afterPath="$PROJECT_DIR$/summary.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,8 +57,10 @@
     "Python.log2.executor": "Run",
     "Python.log3.executor": "Run",
     "Python.main.executor": "Run",
+    "Python.use_existing.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
+    "database.data.extractors.current.export.id": "Excel (xlsx)",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
     "last_opened_file_path": "C:/Users/Benjamin Wagner/PycharmProjects/alumni-portal-analyse",
@@ -113,7 +111,12 @@
       <workItem from="1752353563768" duration="150000" />
       <workItem from="1752353775420" duration="2345000" />
       <workItem from="1753474040177" duration="979000" />
-      <workItem from="1753475534628" duration="11983000" />
+      <workItem from="1753475534628" duration="12013000" />
+      <workItem from="1753490153060" duration="643000" />
+      <workItem from="1753491004274" duration="2184000" />
+      <workItem from="1753770072820" duration="7890000" />
+      <workItem from="1753799231627" duration="375000" />
+      <workItem from="1753799816606" duration="17777000" />
     </task>
     <task id="LOCAL-00001" summary="add media player">
       <option name="closed" value="true" />
@@ -123,7 +126,15 @@
       <option name="project" value="LOCAL" />
       <updated>1751014729615</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="add media player">
+      <option name="closed" value="true" />
+      <created>1753489718836</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1753489718836</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -146,9 +157,10 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/alumni_portal_analyse$activity_hours.coverage" NAME="activity_hours Coverage Results" MODIFIED="1751001673124" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/alumni_portal_analyse$log2.coverage" NAME="log2 Coverage Results" MODIFIED="1753489137405" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/alumni_portal_analyse$log2.coverage" NAME="log2 Coverage Results" MODIFIED="1753491722686" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/alumni_portal_analyse$log.coverage" NAME="log Coverage Results" MODIFIED="1752349548447" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/alumni_portal_analyse$main.coverage" NAME="main Coverage Results" MODIFIED="1751039443316" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/alumni_portal_analyse$log3.coverage" NAME="log3 Coverage Results" MODIFIED="1753474844556" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/alumni_portal_analyse$use_existing.coverage" NAME="use_existing Coverage Results" MODIFIED="1753816997819" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/alumni_portal_analyse$log3.coverage" NAME="log3 Coverage Results" MODIFIED="1753806409084" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
