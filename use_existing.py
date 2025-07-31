@@ -88,6 +88,27 @@ cur_init.execute('''
         audio_length TEXT
     )
 ''')
+
+cur_init.execute("""
+CREATE TABLE IF NOT EXISTS speaker_profiles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    embedding TEXT NOT NULL,
+    created_at TEXT NOT NULL
+)
+""")
+
+cur_init.execute("""
+CREATE TABLE IF NOT EXISTS speaker_matches (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    speaker_id INTEGER NOT NULL,
+    matched_at TEXT NOT NULL,
+    source_file TEXT,
+    cluster_size INTEGER,
+    similarity REAL,
+    FOREIGN KEY (speaker_id) REFERENCES speaker_profiles(id)
+)
+""")
 conn_init.commit()
 conn_init.close()
 
@@ -143,6 +164,9 @@ def record_audio_block(duration, path):
 
     rec_length = time.perf_counter() - rec_length
 
+
+def update_embedding(old, new):
+    return normalize([(old + new) / 2])[0]  # wieder normalisieren
 
 # === Sprechererkennung ===
 def detect_speakers(audio_path, min_segment_length=3.0):
@@ -273,10 +297,61 @@ def detect_speakers(audio_path, min_segment_length=3.0):
         plt.colorbar(label='Cluster Label')
         plt.show()
 
+        # Speaker in DB speichern.
+        conn = sqlite3.connect("protokolle.db")
+        c = conn.cursor()
+        c.execute("SELECT name, id, embedding FROM speaker_profiles")
+        existing_profiles = [(row[0], np.array(json.loads(row[1]))) for row in c.fetchall()]
+
+        threshold = 0.85  # Ähnlichkeits-Schwelle
+        label_to_name = {}
+
+        for cluster_id in np.unique(labels):
+            new_embedding = np.mean(embeddings_normalized[labels == cluster_id], axis=0)
+
+            matched_id = None
+            matched_name = None
+
+            for name, existing_id, existing_embedding in existing_profiles:
+                score = cosine_similarity([new_embedding], [existing_embedding])[0][0]
+                if score > threshold:
+                    matched_id = existing_id
+                    matched_name = name
+                    break
+
+            if matched_id is not None:
+                # Profil aktualisieren (neues Mittel berechnen)
+                updated_embedding = update_embedding(existing_embedding, new_embedding)
+                c.execute("""
+                          UPDATE speaker_profiles
+                          SET embedding = ?
+                          WHERE id = ?
+                          """, (json.dumps(updated_embedding.tolist()), matched_id))
+
+                print(f"Sprecher erkannt.")
+
+                if matched_name:
+                    print(f"Sprecher ist: {matched_name}")
+                    # Merke: diesen Cluster sollen wir labeln
+                    label_to_name[cluster_id] = matched_name
+
+            else:
+                # Neuer Sprecher
+                c.execute("""
+                          INSERT INTO speaker_profiles (name, embedding, created_at)
+                          VALUES (?, ?, ?)
+                          """, (None, json.dumps(new_embedding.tolist()), datetime.now().isoformat()))
+
+        conn.commit()
+        conn.close()
+
         # 5. Sprechersegmente erstellen
         speaker_segments = []
         for (start, end, _), label in zip(segments, labels):
-            speaker_segments.append((start, end, label))
+            name = label_to_name.get(label, f"Sprecher {label}")
+            speaker_segments.append((start, end, name))
+
+
 
         if True:
             plt.figure(figsize=(10, 2))
