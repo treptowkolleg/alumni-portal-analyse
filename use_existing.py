@@ -8,25 +8,38 @@ from datetime import datetime
 from queue import Queue
 from threading import Thread
 
+from sklearn.cluster import DBSCAN
+from sklearn.metrics.pairwise import cosine_distances
+from sklearn.decomposition import PCA
+
+import librosa
+import matplotlib.pyplot as plt
 import numpy as np
 import requests
 import sounddevice as sd
 import soundfile as sf
 import torch
 from faster_whisper import WhisperModel
-from resemblyzer import VoiceEncoder, preprocess_wav
+from resemblyzer import VoiceEncoder, preprocess_wav, wav_to_mel_spectrogram
 from resemblyzer.hparams import sampling_rate
+from scipy.ndimage import uniform_filter1d
 from sklearn.cluster import AgglomerativeClustering
+from sklearn.cluster import SpectralClustering
+from sklearn.manifold import SpectralEmbedding
 from sklearn.preprocessing import normalize
+from sklearn.metrics import silhouette_score
+from sklearn.metrics.pairwise import cosine_similarity
 
 print(f"Backend für CUDA aktiviert: {torch.backends.cudnn.enabled}")
 print(f"CUDA-Version: {torch.version.cuda}")
 print(f"CUDA verfügbar: {torch.cuda.is_available()}")
 
 # === Konfiguration ===
-BLOCK_DURATION = 30  # Sekunden
+BLOCK_DURATION = 90  # Sekunden
 SAMPLERATE = 16000
 MODEL_SIZE = "medium"
+threshold = 0.5
+best_threshold = 0
 
 # neu implementieren:
 USE_EXISTING_AUDIO_FILES = True  # Auf True setzen, um vorhandene Dateien zu verarbeiten
@@ -42,7 +55,7 @@ models = {
 }
 
 # Model-Auswahl
-OLLAMA_MODEL = models[1]
+OLLAMA_MODEL = models[0]
 
 LANGUAGE = "de"
 NUM_CHANNELS = 1
@@ -134,6 +147,8 @@ def record_audio_block(duration, path):
 # === Sprechererkennung ===
 def detect_speakers(audio_path, min_segment_length=3.0):
     global duration
+    global best_threshold
+    global threshold
     duration = 0
     try:
         # 1. Audio vorverarbeiten
@@ -141,14 +156,66 @@ def detect_speakers(audio_path, min_segment_length=3.0):
         duration = len(wav) / sampling_rate
         print(f"🔊 Audiolänge: {duration:.2f}s")
 
+        # 1.2 Spektrum anzeigen
+        spec = wav_to_mel_spectrogram(wav)
+
+
+        # Hüllkurve berechnen: geglättete Amplitude
+        rms = librosa.feature.rms(y=wav, frame_length=1024, hop_length=512)[0]
+        frames = np.arange(len(rms))
+        times_rms = librosa.frames_to_time(frames, sr=sampling_rate, hop_length=512)
+
+        # Mel-Spektrogramm berechnen
+        spec = wav_to_mel_spectrogram(wav)
+        spec_db = 20 * np.log10(np.maximum(spec, 1e-5))
+
+        # Mel-Frequenzen berechnen für Y-Achse
+        n_mels = spec.shape[0]
+        mel_freqs = librosa.mel_frequencies(n_mels=n_mels, fmin=0, fmax=sampling_rate / 2)
+
+        # Plot
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 7), sharex=True)
+
+        # Waveform
+        ax1.plot(times_rms, rms, color='cyan')
+        ax1.set_title("RMS-Hüllkurve (librosa)", color='white')
+        ax1.set_xlabel("Zeit (s)", color='white')
+        ax1.set_ylabel("RMS-Lautstärke", color='white')
+        ax1.grid(True, color='gray', alpha=0.3)
+        ax1.tick_params(colors='white')
+
+        # Mel-Spektrogramm mit kHz-Beschriftung
+        extent = [0, duration, mel_freqs[0], mel_freqs[-1]]
+        im = ax2.imshow(spec_db.T, aspect="auto", origin="lower", cmap="viridis", extent=extent)
+        ax2.set_title("Mel-Spektrogramm (dB, Frequenz in kHz)", color='white')
+        ax2.set_xlabel("Zeit (s)", color='white')
+        ax2.set_ylabel("Frequenz (Hz)", color='white')
+        ax2.grid(True, color='gray', alpha=0.3)
+        ax2.tick_params(colors='white')
+
+        fig.suptitle(f"Analyse für Audio '{audio_path.split('/')[-1]}'", fontsize=14, color='white')
+        fig.patch.set_facecolor('#121212')
+        ax1.set_facecolor("#222222")
+        ax2.set_facecolor("#222222")
+
+        # y-Achse in kHz beschriften
+        ticks = [0, 1000, 2000, 4000, 6000, 8000]
+        ax2.set_yticks(ticks)
+        ax2.set_yticklabels([f"{t // 1000}k" for t in ticks])
+
+
+        plt.tight_layout()
+        plt.show()
+
+
         # 2. Manuelle Segmentierung für kurze Audios
         if duration < 10.0:  # Wenn Audio sehr kurz
             print("⚠️ Audio zu kurz - verwende Single-Speaker-Modus")
             return [(0.0, duration, 0)]
 
         # 3. Embedding mit Sliding Window extrahieren
-        window_size = 3.0  # Sekunden
-        hop_size = 1.5  # Sekunden
+        window_size = 2  # Sekunden
+        hop_size = 0.75  # Sekunden
         segments = []
 
         for start in np.arange(0, duration - window_size, hop_size):
@@ -164,23 +231,67 @@ def detect_speakers(audio_path, min_segment_length=3.0):
 
         # 4. Clustering durchführen
         embeddings = np.array([e for (_, _, e) in segments])
-        n_clusters = min(4, len(segments))
 
-        # Vektoren normalisieren
-        embeddings_normalized = normalize(embeddings, norm='max')
+        # Vektoren normalisieren (für cosine-Distanz erforderlich)
+        embeddings_normalized = normalize(embeddings, norm='l2')
+        similarity_matrix = cosine_similarity(embeddings_normalized)
+        sigma = 0.5  # anpassen!
+        affinity_matrix = np.exp(-1 * (1 - similarity_matrix) ** 2 / (2 * sigma ** 2))
 
-        # n_clusters auf None gesetzt, ansonsten Variable von oben
-        clustering = AgglomerativeClustering(
-            n_clusters=None,
-            metric='cosine',
-            linkage='complete',
-            distance_threshold=0.7
-        ).fit(embeddings_normalized)
+        reduced = PCA(n_components=2).fit_transform(embeddings_normalized)
+
+        scores = []
+        for k in range(2, 10):
+            clustering = SpectralClustering(n_clusters=k, affinity='precomputed').fit(affinity_matrix)
+            score = silhouette_score(embeddings_normalized, clustering.labels_)
+            scores.append(score)
+
+        beste_anzahl = 2 + np.argmax(scores)
+
+        print(f"Beste Anzahl der Sprecher: {beste_anzahl}")
+
+        clustering = SpectralClustering(
+            n_clusters=beste_anzahl,
+            affinity='precomputed',
+            assign_labels='kmeans',
+            random_state=42
+            ).fit(affinity_matrix)
+        # 2D-Embedding für Visualisierung
+        embedding = SpectralEmbedding(n_components=beste_anzahl, affinity='precomputed')
+        X_embedded = embedding.fit_transform(affinity_matrix)
+
+        labels = clustering.labels_
+        num_clusters = len(set(labels))
+
+        print(f"gefundene Cluster: {num_clusters}")
+
+
+
+        plt.figure(figsize=(8, 6))
+        plt.scatter(X_embedded[:, 0], X_embedded[:, 1], c=labels, cmap='tab10', s=50)
+        plt.title(f'Clustering mit {num_clusters} Clustern (Spectral Embedding)')
+        plt.colorbar(label='Cluster Label')
+        plt.show()
 
         # 5. Sprechersegmente erstellen
         speaker_segments = []
-        for (start, end, _), label in zip(segments, clustering.labels_):
+        for (start, end, _), label in zip(segments, labels):
             speaker_segments.append((start, end, label))
+
+        if True:
+            plt.figure(figsize=(10, 2))
+            for (start, end, label) in speaker_segments:
+                if label == -1:
+                    color = 'gray'
+                else:
+                    color = f"C{label % 10}"
+                plt.plot([start, end], [label, label], lw=6, color=color)
+            plt.title("Sprechersegmente (Spectral Clustering)")
+            plt.xlabel("Zeit (s)")
+            plt.ylabel("Sprecher-ID")
+            plt.grid(True)
+            plt.tight_layout()
+            plt.show()
 
         # 6. Benachbarte Segmente gleicher Sprecher zusammenführen
         merged = []
@@ -206,6 +317,7 @@ def detect_speakers(audio_path, min_segment_length=3.0):
 # === Verarbeitungsfunktion ===
 def process_audio(path, block_nr):
     global device
+    global threshold
     global GPU
     global MODEL_SIZE
     global OLLAMA_MODEL
@@ -251,35 +363,36 @@ def process_audio(path, block_nr):
         whisper_stop_time = time.perf_counter() - whisper_start_time
 
         # Zusammenfassung via Ollama
+        # TODO: Schleife bauen, damit alle eingetragenen LLMs die gleiche Datei verwursten.
         print(f"🤖 [LLM] Block {block_nr}: Starte Zusammenfassung …")
 
         llm_start_time = time.perf_counter()
 
-        # prompt = (
-        #     "Erstelle aus dem folgenden Transkript ein sachliches, strukturiertes Protokoll. Achte auf klare Gliederung, chronologische Reihenfolge und korrekte inhaltliche Wiedergabe."
-        #     ""
-        #     "Verwende dabei folgende Struktur:"
-        #     "- Thema"
-        #     "- Datum (falls vorhanden im Text)"
-        #     "- Teilnehmende (falls erkennbar)"
-        #     "- Besprochene Punkte"
-        #     "-> Halte Entscheidungen, Meinungen, Argumente und Ergebnisse sachlich fest."
-        #     "- Ergebnisse und Vereinbarungen"
-        #     ""
-        #     "Verwende keine direkte Rede. Der Stil soll sachlich und neutral sein."
-        #     ""
-        #     "Transkript:"
-        #     f"{transcript}\n\n"
-        # )
-
         prompt = (
-            "Hier ist ein wörtliches Transkript auf Deutsch mit Sprecherkennzeichnung:\n\n"
-            "Bitte fasse den Inhalt strukturiert und umfangreich zusammen. Beziehe wichtige Infos mit ein. Wenn vorhanden, notiere Handlungsanweisungen und To-Do's."
+            "Erstelle aus dem folgenden Transkript ein sachliches, strukturiertes Protokoll. Achte auf klare Gliederung, chronologische Reihenfolge und korrekte inhaltliche Wiedergabe."
+            ""
+            "Verwende dabei folgende Struktur:"
+            "- Thema"
+            "- Datum (falls vorhanden im Text)"
+            "- Teilnehmende (falls erkennbar)"
+            "- Besprochene Punkte"
+            "-> Halte Entscheidungen, Meinungen, Argumente und Ergebnisse sachlich fest."
+            "- Ergebnisse und Vereinbarungen"
+            ""
+            "Verwende keine direkte Rede. Der Stil soll sachlich und neutral sein."
             ""
             "Transkript:"
-            ""
             f"{transcript}\n\n"
         )
+
+        # prompt = (
+        #     "Hier ist ein wörtliches Transkript auf Deutsch mit Sprecherkennzeichnung:\n\n"
+        #     "Bitte fasse den Inhalt strukturiert und umfangreich zusammen. Beziehe wichtige Infos mit ein. Wenn vorhanden, notiere Handlungsanweisungen und To-Do's."
+        #     ""
+        #     "Transkript:"
+        #     ""
+        #     f"{transcript}\n\n"
+        # )
 
         try:
             response = requests.post(
@@ -308,9 +421,9 @@ def process_audio(path, block_nr):
         cur = conn.cursor()
         ts = datetime.now().isoformat()
         cur.execute(
-            "INSERT INTO protokoll (timestamp, block_nr, transcript, think, summary, whisper_model, whisper_duration, llm_model, llm_duration, device, gpu, audio_length) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO protokoll (timestamp, block_nr, transcript, think, summary, whisper_model, whisper_duration, llm_model, llm_duration, device, gpu, audio_length, threshold) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (ts, block_nr, transcript, think, summary, MODEL_SIZE, whisper_stop_time, OLLAMA_MODEL, llm_stop_time, device, GPU,
-             f"{duration:.2f}s")
+             f"{duration:.2f}s", threshold)
         )
         conn.commit()
         conn.close()
