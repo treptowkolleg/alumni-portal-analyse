@@ -1,0 +1,31 @@
+<div class="border-bottom py-3">
+    <h1 class="h4">Sprecher</h1>
+</div>
+<table class="table table-hover">
+    <thead class="table-light sticky-top">
+    <tr>
+        <th scope="col">#</th>
+        <th scope="col">ID</th>
+        <th scope="col">Name</th>
+        <th scope="col">Ort</th>
+        <th scope="col">Befinden</th>
+        <th scope="col">Mikrofon</th>
+        <th scope="col">Protokolle</th>
+        <th scope="col">Vektor zuletzt aktualisiert</th>
+    </tr>
+    </thead>
+    <tbody class="table-group-divider">
+    {% for speaker in items %}
+        <tr>
+            <th scope="row">{{ loop.index }}</th>
+            <td>{{ speaker.id }}</td>
+            <td>{{ speaker.name }}</td>
+            <td>{{ speaker.location|default('-') }}</td>
+            <td>{{ speaker.condition|default('-') }}</td>
+            <td>{{ speaker.microphone|default('-') }}</td>
+            <td class="d-flex justify-content-end align-items-center"><div class="badge text-bg-light me-2">{{ speaker.protocols }}</div><a href="/" class="btn btn-sm btn-light">zeigen</a></td>
+            <td>{{ speaker.updated|date('d.m.Y H:i') }} Uhr</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
