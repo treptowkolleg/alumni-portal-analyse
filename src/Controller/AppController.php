@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\AbstractController;
 use App\Model\SQLite;
+use App\Repository\SpeakerRepository;
 use PDOException;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -19,27 +20,29 @@ class AppController extends AbstractController
      */
     public function index(): string
     {
-        $db = new SQLite();
+        $repository = new SpeakerRepository();
+        $speakers = $repository->findSpeakersCountProfiles();
 
-        try {
-            $db->prepare("
-                        select speaker.id, speaker.name, speaker.condition, speaker.location, speaker.microphone, count(speaker_protocol.protocol_id) as protocols, speaker_profiles.updated_at as updated
-                        from speaker
-                            left join speaker_protocol on speaker.id = speaker_protocol.speaker_id
-                            left join speaker_profiles on speaker_profiles.speaker_id = speaker.id
-                        group by speaker.id
-                        order by speaker.name
-                    ")
-                ->flush();
-
-            $speakers = $db->fetchAll();
-        } catch (PDOException $e) {
-            $speakers = [];
-        }
-
-        return $this->render('app/index.html.twig', [
+        return $this->render('app/speaker/index.html.twig', [
             'speakers' => $speakers,
         ]);
     }
+
+    /**
+     * @throws SyntaxError
+     * @throws RuntimeError
+     * @throws LoaderError
+     */
+    public function show_profiles(): string
+    {
+        $filteredName = $_GET['name'] ?? null;
+        $repository = new SpeakerRepository();
+        $speakers = $repository->findSpeakersCountProtocols($filteredName);
+
+        return $this->render('app/speaker/show_profiles.html.twig', [
+            'speakers' => $speakers,
+        ]);
+    }
+
 
 }
