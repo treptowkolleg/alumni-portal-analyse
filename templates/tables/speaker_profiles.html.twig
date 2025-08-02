@@ -1,0 +1,36 @@
+<table class="table table-hover">
+    <thead class="table-light shadow sticky-top">
+    <tr>
+        <th scope="col">#</th>
+        <th scope="col">ID</th>
+        <th scope="col">Name</th>
+        <th scope="col">Ort</th>
+        <th scope="col">Befinden</th>
+        <th scope="col">Mikrofon</th>
+        <th scope="col" class="text-end">Anzahl Protokolle</th>
+        <th scope="col" class="text-end">Vektor zuletzt aktualisiert</th>
+        <th scope="col" class="text-end">Aktionen</th>
+    </tr>
+    </thead>
+    <tbody class="table-group-divider">
+    {% for speaker in items %}
+        <tr>
+            <th class="align-content-center" scope="row">{{ loop.index }}</th>
+            <td class="align-content-center">{{ speaker.id }}</td>
+            <td class="align-content-center">{{ speaker.name }}</td>
+            <td class="align-content-center">{{ speaker.location|default('-') }}</td>
+            <td class="align-content-center">{{ speaker.condition|default('-') }}</td>
+            <td class="align-content-center">{{ speaker.microphone|default('-') }}</td>
+            <td class="text-end align-content-center"><div class="badge text-bg-primary">{{ speaker.protocols }}</div></td>
+            <td class="text-end align-content-center">{{ speaker.updated|date('d.m.Y H:i') }} Uhr</td>
+            <td class="text-end align-content-center">
+                <div class="d-flex gap-2 justify-content-end align-items-center">
+                    <a href="#" class="btn btn-sm btn-primary"><i class="ti ti-eye me-1"></i>Details</a>
+                    <a href="#" class="btn btn-sm btn-light"><i class="ti ti-viewfinder text-primary me-1"></i>Protokolle zeigen</a>
+                    <a href="#" class="btn btn-sm btn-light"><i class="ti ti-edit text-primary me-1"></i>Bearbeiten</a>
+                </div>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

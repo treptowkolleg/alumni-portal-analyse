@@ -4,16 +4,26 @@ import sqlite3
 import threading
 import time
 import wave
+import json
 from datetime import datetime
 from queue import Queue
 from threading import Thread
 
+from numpy.ma.core import arccos
+from scipy.spatial.distance import euclidean
+
+from tools import db
+
 from sklearn.cluster import DBSCAN
+import hdbscan
 from sklearn.metrics.pairwise import cosine_distances
+from sklearn.metrics import pairwise_distances
 from sklearn.decomposition import PCA
+
 
 import librosa
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 import numpy as np
 import requests
 import sounddevice as sd
@@ -35,14 +45,14 @@ print(f"CUDA-Version: {torch.version.cuda}")
 print(f"CUDA verfügbar: {torch.cuda.is_available()}")
 
 # === Konfiguration ===
-BLOCK_DURATION = 90  # Sekunden
+BLOCK_DURATION = 30  # Sekunden
 SAMPLERATE = 16000
 MODEL_SIZE = "medium"
 threshold = 0.5
 best_threshold = 0
 
 # neu implementieren:
-USE_EXISTING_AUDIO_FILES = True  # Auf True setzen, um vorhandene Dateien zu verarbeiten
+USE_EXISTING_AUDIO_FILES = False  # Auf True setzen, um vorhandene Dateien zu verarbeiten
 EXISTING_AUDIO_DIR = "audio"  # Verzeichnis mit den vorhandenen Audio-Dateien
 
 models = {
@@ -55,8 +65,8 @@ models = {
 }
 
 # Model-Auswahl
-OLLAMA_MODEL = models[0]
-
+OLLAMA_MODEL = models[1]
+speaker_ids = []
 LANGUAGE = "de"
 NUM_CHANNELS = 1
 GPU = torch.cuda.get_device_name(0) if torch.backends.cudnn.enabled and torch.cuda.is_available() else "None"
@@ -109,6 +119,17 @@ CREATE TABLE IF NOT EXISTS speaker_matches (
     FOREIGN KEY (speaker_id) REFERENCES speaker_profiles(id)
 )
 """)
+
+cur_init.execute("""
+CREATE TABLE IF NOT EXISTS speaker_embeddings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    speaker_id INTEGER,
+    embedding TEXT, -- JSON-kodiertes Embedding
+    created_at TEXT,
+    FOREIGN KEY (speaker_id) REFERENCES speaker_profiles(id)
+)
+""")
+
 conn_init.commit()
 conn_init.close()
 
@@ -168,11 +189,16 @@ def record_audio_block(duration, path):
 def update_embedding(old, new):
     return normalize([(old + new) / 2])[0]  # wieder normalisieren
 
+def update_embedding_avg():
+    # TODO: Zu Beginn des Programmstarts neue durchschnittswerte berechnen.
+    pass
+
 # === Sprechererkennung ===
 def detect_speakers(audio_path, min_segment_length=3.0):
     global duration
     global best_threshold
     global threshold
+    global speaker_ids
     duration = 0
     try:
         # 1. Audio vorverarbeiten
@@ -238,8 +264,8 @@ def detect_speakers(audio_path, min_segment_length=3.0):
             return [(0.0, duration, 0)]
 
         # 3. Embedding mit Sliding Window extrahieren
-        window_size = 2  # Sekunden
-        hop_size = 0.75  # Sekunden
+        window_size = 3  # Sekunden
+        hop_size = 1  # Sekunden
         segments = []
 
         for start in np.arange(0, duration - window_size, hop_size):
@@ -259,114 +285,144 @@ def detect_speakers(audio_path, min_segment_length=3.0):
         # Vektoren normalisieren (für cosine-Distanz erforderlich)
         embeddings_normalized = normalize(embeddings, norm='l2')
         similarity_matrix = cosine_similarity(embeddings_normalized)
-        sigma = 0.5  # anpassen!
+        sigma = 0.6  # anpassen!
         affinity_matrix = np.exp(-1 * (1 - similarity_matrix) ** 2 / (2 * sigma ** 2))
+        distance_matrix = pairwise_distances(embeddings_normalized, metric='cosine')
+
 
         reduced = PCA(n_components=2).fit_transform(embeddings_normalized)
 
-        scores = []
-        for k in range(2, 10):
-            clustering = SpectralClustering(n_clusters=k, affinity='precomputed').fit(affinity_matrix)
-            score = silhouette_score(embeddings_normalized, clustering.labels_)
-            scores.append(score)
+        best_score = -1
+        best_k = 1
+        for k in range(1, 5):
+            labels = SpectralClustering(n_clusters=k, affinity='precomputed', assign_labels='kmeans', random_state=42).fit_predict(1-distance_matrix)
 
-        beste_anzahl = 2 + np.argmax(scores)
+            try:
+                score = silhouette_score(distance_matrix, labels, metric="precomputed")
+                if score > best_score:
+                    best_score = score
+                    best_k = k
+            except ValueError:
+                pass
 
-        print(f"Beste Anzahl der Sprecher: {beste_anzahl}")
 
-        clustering = SpectralClustering(
-            n_clusters=beste_anzahl,
-            affinity='precomputed',
-            assign_labels='kmeans',
-            random_state=42
-            ).fit(affinity_matrix)
-        # 2D-Embedding für Visualisierung
-        embedding = SpectralEmbedding(n_components=beste_anzahl, affinity='precomputed')
-        X_embedded = embedding.fit_transform(affinity_matrix)
+        print(f"Erwartete Anzahl der Sprecher: {best_k}")
+        # TODO: Clustering-Algorithmen testen
+        clustering = hdbscan.HDBSCAN(min_cluster_size=3, metric='euclidean')  # oder 'cosine'
+        labels = clustering.fit_predict(embeddings_normalized)
 
+        # clustering = SpectralClustering(
+        #     n_clusters=best_k,
+        #     affinity='precomputed',
+        #     assign_labels='kmeans',
+        #     random_state=42
+        #     ).fit(1-distance_matrix)
         labels = clustering.labels_
+
+        # 2D-Embedding für Visualisierung
+        embedding = SpectralEmbedding(n_components=best_k, affinity='precomputed')
+        X_embedded = embedding.fit_transform(1-distance_matrix)
+
+        #labels = clustering.labels_
         num_clusters = len(set(labels))
 
         print(f"gefundene Cluster: {num_clusters}")
 
-
-
-        plt.figure(figsize=(8, 6))
-        plt.scatter(X_embedded[:, 0], X_embedded[:, 1], c=labels, cmap='tab10', s=50)
-        plt.title(f'Clustering mit {num_clusters} Clustern (Spectral Embedding)')
-        plt.colorbar(label='Cluster Label')
-        plt.show()
-
         # Speaker in DB speichern.
         conn = sqlite3.connect("protokolle.db")
         c = conn.cursor()
-        c.execute("SELECT name, id, embedding FROM speaker_profiles")
-        existing_profiles = [(row[0], np.array(json.loads(row[1]))) for row in c.fetchall()]
 
-        threshold = 0.85  # Ähnlichkeits-Schwelle
+        # c.execute("SELECT name, id, embedding_avg FROM speaker_profiles")
+
+        c.execute("""
+            SELECT speaker.name, speaker.id, speaker_profiles.embedding_avg
+            FROM speaker_profiles
+            JOIN speaker ON speaker.id = speaker_profiles.speaker_id
+        """)
+
+        existing_profiles = []
+        for name, id, embeddings_str in c.fetchall():
+            embedding_avg = np.array(json.loads(embeddings_str))
+            existing_profiles.append((name, id, embedding_avg))
+
+        print(f"Gefundene Embeddings: {len(existing_profiles)}")
+        # existing_profiles = [(row[0], row[1], np.array(json.loads(row[2]))) for row in c.fetchall()]
+
+        vector_angle = 25  # Maximalwinkel der Vektoren
         label_to_name = {}
+        speaker_ids = []
 
         for cluster_id in np.unique(labels):
-            new_embedding = np.mean(embeddings_normalized[labels == cluster_id], axis=0)
 
+            print(f"Cluster-ID: {cluster_id}")
+
+            new_embedding = np.mean(embeddings_normalized[labels == cluster_id], axis=0)
+            new_embedding_normale = new_embedding / np.linalg.norm(new_embedding)
             matched_id = None
             matched_name = None
 
             for name, existing_id, existing_embedding in existing_profiles:
-                score = cosine_similarity([new_embedding], [existing_embedding])[0][0]
-                if score > threshold:
+
+                existing_embedding_normale = existing_embedding / np.linalg.norm(existing_embedding)
+                # score = euclidean(new_embedding_normale, existing_embedding_normale)
+                score = cosine_similarity([new_embedding_normale], [existing_embedding_normale])[0][0]
+
+                theta_rad = np.arccos(np.clip(score, -1.0, 1.0))
+                theta_deg = np.degrees(theta_rad)
+
+                if theta_deg < vector_angle:
                     matched_id = existing_id
                     matched_name = name
+                    speaker_ids.append(existing_id)
+
+
+                    print(f"Sprecher-Profil {existing_id} passt.")
+                    print(f"Winkel der Vektoren ist {theta_deg:.2f}°")
                     break
 
             if matched_id is not None:
                 # Profil aktualisieren (neues Mittel berechnen)
-                updated_embedding = update_embedding(existing_embedding, new_embedding)
-                c.execute("""
-                          UPDATE speaker_profiles
-                          SET embedding = ?
-                          WHERE id = ?
-                          """, (json.dumps(updated_embedding.tolist()), matched_id))
-
-                print(f"Sprecher erkannt.")
+                db.add_embedding_for_speaker(conn, matched_id, new_embedding)
+                print(f"✅\t Sprecher erkannt.")
 
                 if matched_name:
-                    print(f"Sprecher ist: {matched_name}")
                     # Merke: diesen Cluster sollen wir labeln
+                    print(f"✅\t Sprecher {cluster_id} ist {matched_name}.")
                     label_to_name[cluster_id] = matched_name
 
             else:
                 # Neuer Sprecher
-                c.execute("""
-                          INSERT INTO speaker_profiles (name, embedding, created_at)
-                          VALUES (?, ?, ?)
-                          """, (None, json.dumps(new_embedding.tolist()), datetime.now().isoformat()))
+                print(f"✅\t Neues Sprecher-Profil mit der ID {cluster_id} wird erstellt.")
+                new_id = db.create_new_speaker_profile(conn, new_embedding)
+                speaker_ids.append(existing_id)
 
-        conn.commit()
         conn.close()
+        show_plot = True
+        if show_plot:
+            cmap = plt.get_cmap('tab10')
+            unique_labels = np.unique(labels)
+
+            plt.figure(figsize=(8, 6))
+
+            for i, label in enumerate(unique_labels):
+                idx = labels == label
+                name = label_to_name.get(label, f"Sprecher {label}")
+                plt.scatter(X_embedded[idx, 0], X_embedded[idx, 1], color=cmap(i % 10), label=name, s=50)
+
+            plt.title(f'{len(unique_labels)} Cluster (Spectral Embedding)')
+            plt.legend(title="Cluster", loc="best")
+            plt.tight_layout()
+            plt.show()
 
         # 5. Sprechersegmente erstellen
         speaker_segments = []
         for (start, end, _), label in zip(segments, labels):
             name = label_to_name.get(label, f"Sprecher {label}")
             speaker_segments.append((start, end, name))
+            # print(f"[{start:.2f}s – {end:.2f}s] {name} spricht...")
 
 
 
-        if True:
-            plt.figure(figsize=(10, 2))
-            for (start, end, label) in speaker_segments:
-                if label == -1:
-                    color = 'gray'
-                else:
-                    color = f"C{label % 10}"
-                plt.plot([start, end], [label, label], lw=6, color=color)
-            plt.title("Sprechersegmente (Spectral Clustering)")
-            plt.xlabel("Zeit (s)")
-            plt.ylabel("Sprecher-ID")
-            plt.grid(True)
-            plt.tight_layout()
-            plt.show()
 
         # 6. Benachbarte Segmente gleicher Sprecher zusammenführen
         merged = []
@@ -388,6 +444,26 @@ def detect_speakers(audio_path, min_segment_length=3.0):
         print(f"Fehler in detect_speakers: {str(e)}")
         return [(0.0, duration if 'duration' in locals() else 30.0, 0)]
 
+def plot_speaker_segments(speaker_segments):
+    labels = sorted(set(label for (_, _, label) in speaker_segments))
+    colors = plt.get_cmap('tab10', len(labels))
+
+    fig, ax = plt.subplots(figsize=(10, 2))
+
+    for start, end, label in speaker_segments:
+        ax.axvspan(start, end, color=colors(label), alpha=0.7)
+
+    ax.set_xlim(0, max(end for (_, end, _) in speaker_segments))
+    ax.set_ylim(0, 1)
+    ax.set_yticks([])
+    ax.set_xlabel("Zeit (Sekunden)")
+    ax.set_title("Sprecher-Segmente über Zeit")
+
+    patches = [mpatches.Patch(color=colors(l), label=f'Sprecher {l}') for l in labels]
+    ax.legend(handles=patches, bbox_to_anchor=(1.05, 1), loc='upper left')
+
+    plt.tight_layout()
+    plt.show()
 
 # === Verarbeitungsfunktion ===
 def process_audio(path, block_nr):
@@ -396,6 +472,7 @@ def process_audio(path, block_nr):
     global GPU
     global MODEL_SIZE
     global OLLAMA_MODEL
+
     llm_stop_time = 0.0
     think = ""
 
@@ -431,7 +508,7 @@ def process_audio(path, block_nr):
                     speaker_id = label
                     break
 
-            transcript += f"[Sprecher {speaker_id}] {text}\n"
+            transcript += f"[{speaker_id}]: {text}\n"
 
         print(f"✅ [WHISPER+SPEAKER] Block {block_nr}: Transkript mit Sprecherlabels fertig.")
 
@@ -444,16 +521,16 @@ def process_audio(path, block_nr):
         llm_start_time = time.perf_counter()
 
         prompt = (
-            "Erstelle aus dem folgenden Transkript ein sachliches, strukturiertes Protokoll. Achte auf klare Gliederung, chronologische Reihenfolge und korrekte inhaltliche Wiedergabe."
+            "Erstelle aus dem folgenden Transkript ein sachliches, strukturiertes Gepsrächsprotokoll im Markdown-Format. Achte auf klare Gliederung, chronologische Reihenfolge und korrekte inhaltliche Wiedergabe."
             ""
-            "Verwende dabei folgende Struktur:"
-            "- Thema"
-            "- Datum (falls vorhanden im Text)"
-            "- Teilnehmende (falls erkennbar)"
-            "- Besprochene Punkte"
-            "-> Halte Entscheidungen, Meinungen, Argumente und Ergebnisse sachlich fest."
-            "- Ergebnisse und Vereinbarungen"
-            ""
+            # "Verwende dabei folgende Struktur:"
+            # "- Thema"
+            # "- Datum (falls vorhanden im Text)"
+            # "- Teilnehmende (falls erkennbar)"
+            # "- Besprochene Punkte"
+            # "-> Halte Entscheidungen, Meinungen, Argumente und Ergebnisse sachlich fest."
+            # "- Ergebnisse und Vereinbarungen"
+            # ""
             "Verwende keine direkte Rede. Der Stil soll sachlich und neutral sein."
             ""
             "Transkript:"
@@ -491,6 +568,8 @@ def process_audio(path, block_nr):
             summary = f"[FEHLER bei Zusammenfassung: {e}]"
             print(summary)
 
+        global speaker_ids
+
         # Datenbank speichern
         conn = sqlite3.connect(DB_PATH)
         cur = conn.cursor()
@@ -500,6 +579,15 @@ def process_audio(path, block_nr):
             (ts, block_nr, transcript, think, summary, MODEL_SIZE, whisper_stop_time, OLLAMA_MODEL, llm_stop_time, device, GPU,
              f"{duration:.2f}s", threshold)
         )
+
+        last_id = cur.lastrowid
+
+        for speaker_id in speaker_ids:
+            cur.execute(
+                "INSERT INTO speaker_protocol (speaker_id, protocol_id) VALUES (?, ?)",
+                (speaker_id, last_id)
+            )
+
         conn.commit()
         conn.close()
         print(f"📥 [DB] Block {block_nr} gespeichert.")

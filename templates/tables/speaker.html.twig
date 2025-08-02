@@ -1,0 +1,20 @@
+<table class="table table-hover">
+    <thead class="table-light sticky-top">
+    <tr>
+        <th scope="col">#</th>
+        <th scope="col">Name</th>
+        <th scope="col" class="text-end">Anzahl Profile</th>
+        <th scope="col" class="text-end">Aktionen</th>
+    </tr>
+    </thead>
+    <tbody class="table-group-divider">
+    {% for speaker in items %}
+        <tr>
+            <th class="align-content-center" scope="row">{{ loop.index }}</th>
+            <td class="align-content-center">{{ speaker.name }}</td>
+            <td class="text-end align-content-center"><div class="badge text-bg-primary">{{ speaker.profiles }}</div></td>
+            <td class="text-end align-content-center"><a href="/?controller=app&view=show_profiles&name={{ speaker.name|url_encode }}" class="btn btn-sm btn-primary"><i class="ti ti-users me-1"></i>Profile anzeigen</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
