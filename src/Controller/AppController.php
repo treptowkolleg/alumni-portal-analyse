@@ -3,9 +3,7 @@
 namespace App\Controller;
 
 use App\AbstractController;
-use App\Model\SQLite;
 use App\Repository\SpeakerRepository;
-use PDOException;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;

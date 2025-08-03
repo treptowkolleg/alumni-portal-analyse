@@ -2,7 +2,7 @@
     <thead class="table-light shadow sticky-top">
     <tr>
         <th scope="col">#</th>
-        <th scope="col">ID</th>
+        <th scope="col">Profil-ID</th>
         <th scope="col">Name</th>
         <th scope="col">Ort</th>
         <th scope="col">Befinden</th>
@@ -25,7 +25,7 @@
             <td class="text-end align-content-center">{{ speaker.updated|date('d.m.Y H:i') }} Uhr</td>
             <td class="text-end align-content-center">
                 <div class="d-flex gap-2 justify-content-end align-items-center">
-                    <a href="#" class="btn btn-sm btn-primary"><i class="ti ti-eye me-1"></i>Details</a>
+                    <a href="/?controller=embedding&view=index&profile_id={{ speaker.profile_id }}" class="btn btn-sm btn-primary"><i class="ti ti-math me-1"></i>Vektoren</a>
                     <a href="#" class="btn btn-sm btn-light"><i class="ti ti-viewfinder text-primary me-1"></i>Protokolle zeigen</a>
                     <a href="#" class="btn btn-sm btn-light"><i class="ti ti-edit text-primary me-1"></i>Bearbeiten</a>
                 </div>

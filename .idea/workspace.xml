@@ -5,18 +5,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d3bfe025-3d27-4cb9-9976-011e2bbcd746" name="Changes" comment="add media player">
-      <change afterPath="$PROJECT_DIR$/assets/app.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/AbstractRepository.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Repository/SpeakerRepository.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/app/speaker/show_profiles.html.twig" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/component/main_tab.html.twig" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/tables/speaker.html.twig" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cache/e8/e85c5aa6e479f7ccca496a472335f370.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Controller/EmbeddingController.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Repository/EmbeddingRepository.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Service/VectorService.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/app/embedding/index.html.twig" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/tables/embedding_table.html.twig" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/alumni-portal-analyse.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/alumni-portal-analyse.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/jsLibraryMappings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jsLibraryMappings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/composer.json" beforeDir="false" afterPath="$PROJECT_DIR$/composer.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/composer.lock" beforeDir="false" afterPath="$PROJECT_DIR$/composer.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Controller/AppController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controller/AppController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/app/index.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/app/speaker/index.html.twig" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Repository/SpeakerRepository.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Repository/SpeakerRepository.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/app/speaker/show_profiles.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/app/speaker/show_profiles.html.twig" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/base.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html.twig" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/component/main_tab.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/component/main_tab.html.twig" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/tables/speaker_profiles.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/tables/speaker_profiles.html.twig" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -24,7 +29,7 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ComposerSettings" synchronizationState="SYNCHRONIZE">
+  <component name="ComposerSettings" doNotAsk="true" synchronizationState="SYNCHRONIZE">
     <pharConfigPath>$PROJECT_DIR$/composer.json</pharConfigPath>
     <execution>
       <executable path="composer" />
@@ -41,18 +46,6 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory">{
-  &quot;lastFilter&quot;: {
-    &quot;state&quot;: &quot;OPEN&quot;,
-    &quot;assignee&quot;: &quot;treptowkolleg&quot;
-  }
-}</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/treptowkolleg/alumni-portal-analyse.git",
-    "accountId": "32790472-babb-4eac-9c75-3159b475167a"
-  }
-}]]></component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/use_existing.py" root0="SKIP_INSPECTION" />
   </component>
@@ -65,49 +58,30 @@
       <path value="$PROJECT_DIR$/vendor/symfony/deprecation-contracts" />
     </include_path>
   </component>
-  <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 6
-}</component>
   <component name="ProjectId" id="2x8FL6eu80cjlzYORa7MUUEYZfB" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "HTTP Request.test | POST request to example server.executor": "Run",
-    "Python.activity_hours.executor": "Run",
-    "Python.log.executor": "Run",
-    "Python.log2.executor": "Run",
-    "Python.log3.executor": "Run",
-    "Python.main.executor": "Run",
-    "Python.use_existing.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "database.data.extractors.current.export.id": "Excel (xlsx)",
-    "git-widget-placeholder": "master",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/Benjamin Wagner/PycharmProjects/alumni-portal-analyse/templates/tables",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
-    "vue.rearranger.settings.migration": "true"
-  },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "sqlite"
-    ]
-  }
-}]]></component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/templates/tables" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="vue.rearranger.settings.migration" value="true" />
+  </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\BenjaminWagner\PycharmProjects\alumni-portal-analyse\templates\tables" />
+      <recent name="C:\Users\BenjaminWagner\PycharmProjects\alumni-portal-analyse\src\Repository" />
+      <recent name="C:\Users\BenjaminWagner\PycharmProjects\alumni-portal-analyse\templates\app\embedding" />
+      <recent name="C:\Users\BenjaminWagner\PycharmProjects\alumni-portal-analyse\src\Controller" />
       <recent name="C:\Users\Benjamin Wagner\PycharmProjects\alumni-portal-analyse\templates\tables" />
-      <recent name="C:\Users\Benjamin Wagner\PycharmProjects\alumni-portal-analyse" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\Benjamin Wagner\PycharmProjects\alumni-portal-analyse\templates\app\speaker" />
@@ -156,6 +130,8 @@
       <workItem from="1754118991776" duration="313000" />
       <workItem from="1754121201908" duration="2083000" />
       <workItem from="1754136165335" duration="5730000" />
+      <workItem from="1754157093668" duration="6833000" />
+      <workItem from="1754197877652" duration="31000" />
     </task>
     <task id="LOCAL-00001" summary="add media player">
       <option name="closed" value="true" />
@@ -213,17 +189,11 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="add media player" />
     <option name="LAST_COMMIT_MESSAGE" value="add media player" />
-  </component>
-  <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/alumni_portal_analyse$activity_hours.coverage" NAME="activity_hours Coverage Results" MODIFIED="1751001673124" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/alumni_portal_analyse$log2.coverage" NAME="log2 Coverage Results" MODIFIED="1753491722686" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/alumni_portal_analyse$log.coverage" NAME="log Coverage Results" MODIFIED="1752349548447" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/alumni_portal_analyse$main.coverage" NAME="main Coverage Results" MODIFIED="1751039443316" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/alumni_portal_analyse$use_existing.coverage" NAME="use_existing Coverage Results" MODIFIED="1754078115139" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/alumni_portal_analyse$log3.coverage" NAME="log3 Coverage Results" MODIFIED="1753806409084" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

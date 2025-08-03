@@ -1,0 +1,28 @@
+<table class="table table-hover">
+    <thead class="table-light sticky-top">
+    <tr>
+        <th scope="col">#</th>
+        <th scope="col">Profil-ID</th>
+        <th scope="col">Name</th>
+        <th scope="col" class="text-end">Vektorbetrag</th>
+        <th scope="col" class="text-end">AVG-Vektorbetrag</th>
+        <th scope="col" class="text-end">Abstand zum AVG</th>
+        <th scope="col" class="text-end">Vektor erstellt</th>
+        <th scope="col" class="text-end">Aktionen</th>
+    </tr>
+    </thead>
+    <tbody class="table-group-divider">
+    {% for speaker in items %}
+        <tr>
+            <th class="align-content-center" scope="row">{{ loop.index }}</th>
+            <td class="align-content-center">{{ speaker.profile_id }}</td>
+            <td class="align-content-center">{{ speaker.name }}</td>
+            <td class="text-end align-content-center"><div class="">{{ speaker.embedding_length|number_format(4, ',', '')  }}</div></td>
+            <td class="text-end align-content-center"><div class="">{{ speaker.embedding_avg|number_format(4, ',', '')  }}</div></td>
+            <td class="text-end align-content-center"><div class="">{{ speaker.angle|number_format(4, ',', '')  }}</div></td>
+            <td class="text-end align-content-center">{{ speaker.created|date('d.m.Y H:i') }} Uhr</td>
+            <td class="text-end align-content-center"><a href="/?controller=app&view=show_profiles&name={{ speaker.name|url_encode }}" class="btn btn-sm btn-primary"><i class="ti ti-users me-1"></i>Profile anzeigen</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

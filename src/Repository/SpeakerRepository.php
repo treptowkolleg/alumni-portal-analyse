@@ -33,13 +33,15 @@ class SpeakerRepository extends AbstractRepository
         if ($name !== null) {
             $this->db->prepare("
                     select
-                    speaker.id,
+                    speaker.id as speaker_id,
+                    speaker_profiles.id,
                     speaker.name,
                     speaker.condition,
                     speaker.location,
                     speaker.microphone,
                     count(speaker_protocol.protocol_id) as protocols,
-                    speaker_profiles.updated_at as updated
+                    speaker_profiles.updated_at as updated,
+                    speaker_profiles.id as profile_id
                     from speaker
                         left join speaker_protocol on speaker.id = speaker_protocol.speaker_id
                         left join speaker_profiles on speaker_profiles.speaker_id = speaker.id
@@ -52,13 +54,15 @@ class SpeakerRepository extends AbstractRepository
         } else {
             $this->db->prepare("
                     select
-                    speaker.id,
+                    speaker.id as speaker_id,
+                    speaker_profiles.id,
                     speaker.name,
                     speaker.condition,
                     speaker.location,
                     speaker.microphone,
                     count(speaker_protocol.protocol_id) as protocols,
-                    speaker_profiles.updated_at as updated
+                    speaker_profiles.updated_at as updated,
+                    speaker_profiles.id as profile_id
                     from speaker
                         left join speaker_protocol on speaker.id = speaker_protocol.speaker_id
                         left join speaker_profiles on speaker_profiles.speaker_id = speaker.id
