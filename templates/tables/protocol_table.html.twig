@@ -1,0 +1,39 @@
+<table class="table table-hover">
+    <thead class="table-light shadow sticky-top">
+    <tr>
+        <th scope="col">#</th>
+        <th scope="col">Protokoll-ID</th>
+        <th scope="col">aktueller Sprecher</th>
+        <th scope="col">Titel</th>
+        <th scope="col">Whisper-Modell</th>
+        <th scope="col">LLM-Modell</th>
+        <th scope="col">Prozessor</th>
+        <th scope="col">GPU</th>
+        <th scope="col" class="text-end">Audiolänge</th>
+        <th scope="col" class="text-end">Datum</th>
+        <th scope="col" class="text-end">Aktionen</th>
+    </tr>
+    </thead>
+    <tbody class="table-group-divider">
+    {% for item in items %}
+        <tr>
+            <th class="align-content-center" scope="row">{{ loop.index }}</th>
+            <td class="align-content-center">{{ item.id }}</td>
+            <td class="align-content-center">{{ item.name }}</td>
+            <td class="align-content-center fw-bold">{{ item.title|default('-') }}</td>
+            <td class="align-content-center">{{ item.whisper_model|default('-') }}</td>
+            <td class="align-content-center">{{ item.llm_model|default('-') }}</td>
+            <td class="align-content-center">{{ item.device|default('-') }}</td>
+            <td class="align-content-center">{{ item.gpu|default('-') }}</td>
+            <td class="text-end align-content-center">{{ item.audio_length }}</td>
+            <td class="text-end align-content-center">{{ item.timestamp|date('d.m.Y H:i') }} Uhr</td>
+            <td class="text-end align-content-center">
+                <div class="d-flex gap-2 justify-content-end align-items-center">
+                    <a href="/?controller=protocol&view=show&protocol_id={{ item.id }}" class="btn btn-sm btn-primary"><i class="ti ti-viewfinder me-1"></i>Details</a>
+                    <a href="#" class="btn btn-sm btn-light"><i class="ti ti-edit text-primary me-1"></i>Bearbeiten</a>
+                </div>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

@@ -11,7 +11,15 @@
         </form>
     </div>
 
-    {{ include('component/main_tab.html.twig',{'active':'speaker'}) }}
+    {{ include('component/main_tab.html.twig',{'active':'protocol'}) }}
 
-    {{ include('tables/speaker_table.html.twig',{'items':speakers}) }}
+    <div class="container py-5">
+        <div class="row-cols-1 g-3">
+            <div class="col"><h1 class="mb-5">{{ protocol.title }}<br><small class="fw-normal">{{ protocol.timestamp|date('d.m.Y - H:i') }} Uhr</small></h1></div>
+            <div class="col">{{ protocol.summary|raw }}</div>
+            <div class="col"><h2>Transkript</h2><pre><code>{{ protocol.transcript }}</code></pre></div>
+        </div>
+
+    </div>
+
 {% endblock %}

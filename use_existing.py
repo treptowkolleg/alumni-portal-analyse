@@ -444,26 +444,6 @@ def detect_speakers(audio_path, min_segment_length=3.0):
         print(f"Fehler in detect_speakers: {str(e)}")
         return [(0.0, duration if 'duration' in locals() else 30.0, 0)]
 
-def plot_speaker_segments(speaker_segments):
-    labels = sorted(set(label for (_, _, label) in speaker_segments))
-    colors = plt.get_cmap('tab10', len(labels))
-
-    fig, ax = plt.subplots(figsize=(10, 2))
-
-    for start, end, label in speaker_segments:
-        ax.axvspan(start, end, color=colors(label), alpha=0.7)
-
-    ax.set_xlim(0, max(end for (_, end, _) in speaker_segments))
-    ax.set_ylim(0, 1)
-    ax.set_yticks([])
-    ax.set_xlabel("Zeit (Sekunden)")
-    ax.set_title("Sprecher-Segmente über Zeit")
-
-    patches = [mpatches.Patch(color=colors(l), label=f'Sprecher {l}') for l in labels]
-    ax.legend(handles=patches, bbox_to_anchor=(1.05, 1), loc='upper left')
-
-    plt.tight_layout()
-    plt.show()
 
 # === Verarbeitungsfunktion ===
 def process_audio(path, block_nr):
@@ -475,6 +455,7 @@ def process_audio(path, block_nr):
 
     llm_stop_time = 0.0
     think = ""
+    title = ""
 
     length_seconds = get_wav_length(path)
 
@@ -516,12 +497,12 @@ def process_audio(path, block_nr):
 
         # Zusammenfassung via Ollama
         # TODO: Schleife bauen, damit alle eingetragenen LLMs die gleiche Datei verwursten.
-        print(f"🤖 [LLM] Block {block_nr}: Starte Zusammenfassung …")
+        print(f"🤖\t [LLM] Block {block_nr}: Starte Zusammenfassung …")
 
         llm_start_time = time.perf_counter()
 
         prompt = (
-            "Erstelle aus dem folgenden Transkript ein sachliches, strukturiertes Gepsrächsprotokoll im Markdown-Format. Achte auf klare Gliederung, chronologische Reihenfolge und korrekte inhaltliche Wiedergabe."
+            "Erstelle aus dem folgenden Transkript ein sachliches, strukturiertes Gesprächsprotokoll im Markdown-Format. Achte auf klare Gliederung, chronologische Reihenfolge und korrekte inhaltliche Wiedergabe."
             ""
             # "Verwende dabei folgende Struktur:"
             # "- Thema"
@@ -560,8 +541,27 @@ def process_audio(path, block_nr):
             # Entferne das gesamte <think>...</think>-Tag aus dem summary
             summary = re.sub(r"<think>.*?</think>", "", summary, flags=re.DOTALL).strip()
 
-            print(f"✅ [LLM] Zusammenfassung abgeschlossen.")
+            print(f"✅ [LLM]\t Zusammenfassung abgeschlossen.")
+            print(f"🤖\t [LLM] Block {block_nr}: Erzeuge Titel …")
+            prompt = (
+                "Finde einen kurzen, passenden und prägnanten Titel für die folgenden Text. Gib nur den Titel aus."
+                ""
+                "Text:"
+                f"{summary}\n\n"
+            )
 
+            response = requests.post(
+                "http://localhost:11434/api/generate",
+                json={"model": OLLAMA_MODEL, "prompt": prompt, "stream": False}
+            )
+
+            response.raise_for_status()
+            title = response.json()["response"].strip()
+            match = re.search(r"<think>(.*?)</think>", title, re.DOTALL)
+            think = match.group(1).strip() if match else ""
+            # Entferne das gesamte <think>...</think>-Tag aus dem summary
+            title = re.sub(r"<think>.*?</think>", "", title, flags=re.DOTALL).strip()
+            print(f"✅ [LLM]\t Titel erzeugt.")
             llm_stop_time = time.perf_counter() - llm_start_time
 
         except Exception as e:
@@ -575,8 +575,8 @@ def process_audio(path, block_nr):
         cur = conn.cursor()
         ts = datetime.now().isoformat()
         cur.execute(
-            "INSERT INTO protokoll (timestamp, block_nr, transcript, think, summary, whisper_model, whisper_duration, llm_model, llm_duration, device, gpu, audio_length, threshold) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (ts, block_nr, transcript, think, summary, MODEL_SIZE, whisper_stop_time, OLLAMA_MODEL, llm_stop_time, device, GPU,
+            "INSERT INTO protokoll (timestamp, block_nr, transcript, think, summary, title, whisper_model, whisper_duration, llm_model, llm_duration, device, gpu, audio_length, threshold) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)",
+            (ts, block_nr, transcript, think, summary, title, MODEL_SIZE, whisper_stop_time, OLLAMA_MODEL, llm_stop_time, device, GPU,
              f"{duration:.2f}s", threshold)
         )
 

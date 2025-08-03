@@ -11,7 +11,7 @@
         </form>
     </div>
 
-    {{ include('component/main_tab.html.twig',{'active':'speaker'}) }}
+    {{ include('component/main_tab.html.twig',{'active':'protocol'}) }}
 
-    {{ include('tables/speaker_table.html.twig',{'items':speakers}) }}
+    {{ include(table_template, {'items':protocols}) }}
 {% endblock %}

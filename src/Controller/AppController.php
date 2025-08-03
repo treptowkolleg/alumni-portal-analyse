@@ -18,11 +18,13 @@ class AppController extends AbstractController
      */
     public function index(): string
     {
+        $filteredName = $_GET['name'] ?? '';
         $repository = new SpeakerRepository();
-        $speakers = $repository->findSpeakersCountProfiles();
+        $speakers = $repository->findSpeakersCountProfiles($filteredName);
 
         return $this->render('app/speaker/index.html.twig', [
             'speakers' => $speakers,
+            'filtered_name' => $filteredName,
         ]);
     }
 
@@ -33,12 +35,13 @@ class AppController extends AbstractController
      */
     public function show_profiles(): string
     {
-        $filteredName = $_GET['name'] ?? null;
+        $filteredName = $_GET['name'] ?? '';
         $repository = new SpeakerRepository();
         $speakers = $repository->findSpeakersCountProtocols($filteredName);
 
         return $this->render('app/speaker/show_profiles.html.twig', [
             'speakers' => $speakers,
+            'filtered_name' => $filteredName,
         ]);
     }
 
