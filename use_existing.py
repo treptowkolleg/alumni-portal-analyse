@@ -255,7 +255,8 @@ def detect_speakers(audio_path, min_segment_length=3.0):
 
 
         plt.tight_layout()
-        plt.show()
+        plt.savefig(f"assets/img/{audio_path.split('/')[-1]}.png", dpi=300, bbox_inches="tight", format="png")
+        plt.close()
 
 
         # 2. Manuelle Segmentierung für kurze Audios
@@ -348,7 +349,7 @@ def detect_speakers(audio_path, min_segment_length=3.0):
         print(f"Gefundene Embeddings: {len(existing_profiles)}")
         # existing_profiles = [(row[0], row[1], np.array(json.loads(row[2]))) for row in c.fetchall()]
 
-        vector_angle = 25  # Maximalwinkel der Vektoren
+        vector_angle = 29  # Maximalwinkel der Vektoren in Grad
         label_to_name = {}
         speaker_ids = []
 
@@ -394,7 +395,7 @@ def detect_speakers(audio_path, min_segment_length=3.0):
                 # Neuer Sprecher
                 print(f"✅\t Neues Sprecher-Profil mit der ID {cluster_id} wird erstellt.")
                 new_id = db.create_new_speaker_profile(conn, new_embedding)
-                speaker_ids.append(existing_id)
+                speaker_ids.append(new_id)
 
         conn.close()
         show_plot = True
@@ -412,7 +413,8 @@ def detect_speakers(audio_path, min_segment_length=3.0):
             plt.title(f'{len(unique_labels)} Cluster (Spectral Embedding)')
             plt.legend(title="Cluster", loc="best")
             plt.tight_layout()
-            plt.show()
+            plt.savefig(f"assets/img/cluster_{audio_path.split('/')[-1]}.png", dpi=300, bbox_inches="tight", format="png")
+            plt.close()
 
         # 5. Sprechersegmente erstellen
         speaker_segments = []
@@ -502,7 +504,7 @@ def process_audio(path, block_nr):
         llm_start_time = time.perf_counter()
 
         prompt = (
-            "Erstelle aus dem folgenden Transkript ein sachliches, strukturiertes Gesprächsprotokoll im Markdown-Format. Achte auf klare Gliederung, chronologische Reihenfolge und korrekte inhaltliche Wiedergabe."
+            "Erstelle aus dem folgendem Gespräch eine sachliche, strukturierte Zusammenfassung im Markdown-Stil. Achte auf klare Gliederung, chronologische Reihenfolge und korrekte inhaltliche Wiedergabe."
             ""
             # "Verwende dabei folgende Struktur:"
             # "- Thema"
@@ -570,14 +572,17 @@ def process_audio(path, block_nr):
 
         global speaker_ids
 
+        file = path.split('/')[-1]
+        cluster_file = f"cluster_{file}"
+
         # Datenbank speichern
         conn = sqlite3.connect(DB_PATH)
         cur = conn.cursor()
         ts = datetime.now().isoformat()
         cur.execute(
-            "INSERT INTO protokoll (timestamp, block_nr, transcript, think, summary, title, whisper_model, whisper_duration, llm_model, llm_duration, device, gpu, audio_length, threshold) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)",
+            "INSERT INTO protokoll (timestamp, block_nr, transcript, think, summary, title, whisper_model, whisper_duration, llm_model, llm_duration, device, gpu, audio_length, threshold, file, cluster_file) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?)",
             (ts, block_nr, transcript, think, summary, title, MODEL_SIZE, whisper_stop_time, OLLAMA_MODEL, llm_stop_time, device, GPU,
-             f"{duration:.2f}s", threshold)
+             f"{duration:.2f}s", threshold, file, cluster_file)
         )
 
         last_id = cur.lastrowid

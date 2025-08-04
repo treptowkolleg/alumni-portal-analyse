@@ -20,7 +20,7 @@
             <th class="align-content-center" scope="row">{{ loop.index }}</th>
             <td class="align-content-center">{{ item.id }}</td>
             <td class="align-content-center">{{ item.name }}</td>
-            <td class="align-content-center fw-bold">{{ item.title|default('-') }}</td>
+            <td class="align-content-center fw-bold"><a href="/?controller=protocol&view=show&protocol_id={{ item.id }}" class="text-decoration-none">{{ item.title|default('-') }}</a></td>
             <td class="align-content-center">{{ item.whisper_model|default('-') }}</td>
             <td class="align-content-center">{{ item.llm_model|default('-') }}</td>
             <td class="align-content-center">{{ item.device|default('-') }}</td>

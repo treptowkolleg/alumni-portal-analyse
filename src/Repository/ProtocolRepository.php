@@ -74,6 +74,8 @@ class ProtocolRepository extends AbstractRepository
                         p.id,
                         p.title,
                         p.transcript,
+                        p.file,
+                        p.cluster_file,
                         p.summary,
                         p.think,
                         p.whisper_model,
