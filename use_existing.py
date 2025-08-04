@@ -633,7 +633,7 @@ if __name__ == "__main__":
     if USE_EXISTING_AUDIO_FILES:
         process_existing_audio_files()
     else:
-        print("🔴 Aufnahme läuft. Drücke [Strg+C], um zu stoppen …")
+        print("[REC]\tstarted")
         recorder_thread = Thread(target=recorder, daemon=True)
         recorder_thread.start()
 
@@ -644,10 +644,10 @@ if __name__ == "__main__":
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("🛑 Aufnahme gestoppt. Warte auf letzte Verarbeitung …")
+        print("[REC]\tstopped")
         stop_event.set()  # 🧨 Beende beide Threads
         if not USE_EXISTING_AUDIO_FILES:
             recorder_thread.join()  # 🎤 Warten auf Beenden des Recorders
         audio_queue.join()  # ⏳ Warten bis alles verarbeitet ist
         processor_thread.join()  # 🧠 Warten auf Beenden des Verarbeiters
-        print("✅ Beendet. Alle Daten gespeichert.")
+        print("[SCRIPT]\tstopped")
