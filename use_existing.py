@@ -52,7 +52,7 @@ threshold = 0.5
 best_threshold = 0
 
 # neu implementieren:
-USE_EXISTING_AUDIO_FILES = False  # Auf True setzen, um vorhandene Dateien zu verarbeiten
+USE_EXISTING_AUDIO_FILES = True  # Auf True setzen, um vorhandene Dateien zu verarbeiten
 EXISTING_AUDIO_DIR = "audio"  # Verzeichnis mit den vorhandenen Audio-Dateien
 
 models = {
@@ -134,7 +134,7 @@ conn_init.commit()
 conn_init.close()
 
 # === Modelle vorbereiten ===
-whisper = WhisperModel(MODEL_SIZE, compute_type="int8", device=device)
+whisper = WhisperModel(MODEL_SIZE, compute_type="float32", device=device)
 encoder = VoiceEncoder()
 
 # === Warteschlange ===
@@ -167,6 +167,7 @@ def process_existing_audio_files():
 
     for filename in audio_files:
         file_path = os.path.join(EXISTING_AUDIO_DIR, filename)
+        file_path = os.path.relpath(file_path)
         audio_queue.put((file_path, block_counter))
         block_counter += 1
 
@@ -255,7 +256,8 @@ def detect_speakers(audio_path, min_segment_length=3.0):
 
 
         plt.tight_layout()
-        plt.savefig(f"assets/img/{audio_path.split('/')[-1]}.png", dpi=300, bbox_inches="tight", format="png")
+        filename = os.path.basename(audio_path)
+        plt.savefig(f"assets/img/{filename}.png", dpi=300, bbox_inches="tight", format="png")
         plt.close()
 
 
@@ -413,7 +415,7 @@ def detect_speakers(audio_path, min_segment_length=3.0):
             plt.title(f'{len(unique_labels)} Cluster (Spectral Embedding)')
             plt.legend(title="Cluster", loc="best")
             plt.tight_layout()
-            plt.savefig(f"assets/img/cluster_{audio_path.split('/')[-1]}.png", dpi=300, bbox_inches="tight", format="png")
+            plt.savefig(f"assets/img/cluster_{filename}.png", dpi=300, bbox_inches="tight", format="png")
             plt.close()
 
         # 5. Sprechersegmente erstellen
@@ -572,7 +574,7 @@ def process_audio(path, block_nr):
 
         global speaker_ids
 
-        file = path.split('/')[-1]
+        file = os.path.basename(path)
         cluster_file = f"cluster_{file}"
 
         # Datenbank speichern
