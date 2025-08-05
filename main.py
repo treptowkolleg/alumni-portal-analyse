@@ -1,7 +1,31 @@
+import os
+
 from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QFileDialog, QLabel, QProgressBar, QSlider, \
     QHBoxLayout, QStyleFactory
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtCore import QUrl, Qt
+
+from gui.MainWindow import MainWindow
+from tools.desktop import WINDOW_STYLE
+from py3nvml import py3nvml as nvml
+
+"""
+Systemtests ausführen
+"""
+
+"""
+Grafische Anwendung einrichten
+"""
+app = QApplication([])
+app.setStyle(QStyleFactory.create(WINDOW_STYLE))
+app.styleHints().setColorScheme(Qt.ColorScheme.Dark)
+
+# Hauptfenster deklarieren und App starten
+nvml.nvmlInit()
+window = MainWindow()
+window.show()
+app.exec()
+nvml.nvmlShutdown()
 
 
 class AudioPlayer(QWidget):
@@ -41,7 +65,6 @@ class AudioPlayer(QWidget):
         self.player.durationChanged.connect(lambda d: self.init_progress_bar(d))
         self.player.positionChanged.connect(lambda p: self.update_progress_bar(p))
 
-
         layout.addWidget(self.button_open)
         layout.setSpacing(5)
         layout.addWidget(self.button_detach)
@@ -61,9 +84,8 @@ class AudioPlayer(QWidget):
         mainLayout.addWidget(rLayout)
         mainLayout.addWidget(lLayout)
 
-
-        layout.setStretch(0,0)
-        layout.setStretch(1,1)
+        layout.setStretch(0, 0)
+        layout.setStretch(1, 1)
 
         self.setLayout(mainLayout)
 
@@ -115,11 +137,3 @@ class AudioPlayer(QWidget):
             self.button_play.setDisabled(True)
             self.button_stop.setDisabled(True)
             self.button_detach.setDisabled(True)
-
-
-
-app = QApplication([])
-app.setStyle(QStyleFactory.create('Fusion'))
-window = AudioPlayer()
-window.show()
-app.exec()
