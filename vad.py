@@ -121,7 +121,7 @@ if recording:
         for seg_idx, seg in enumerate(whisper_segments):
             start = round(seg.start, 1)
             end = round(seg.end, 1)
-            print(f"{seg_idx:2}: {seg.text.strip()}")
+            print(f"{seg_idx:2}:\t{seg.text.strip()}")
     print("⏹️ \tDurchgang beendet")
 
 else:
