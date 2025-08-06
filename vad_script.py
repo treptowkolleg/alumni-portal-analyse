@@ -17,7 +17,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 whisper = WhisperModel(MODEL_SIZE, compute_type="float32", device=device)
 
 
-torch.hub.download_url_to_file('https://models.silero.ai/vad_models/de.wav', 'de_example.wav')
+# torch.hub.download_url_to_file('https://models.silero.ai/vad_models/de.wav', 'de_example.wav')
 
 # --------------------------
 # Silero VAD vorbereiten

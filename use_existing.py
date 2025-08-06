@@ -64,6 +64,7 @@ models = {
     5: "qwen3:8b",              # gute Zusammenfassung, jedoch wurde der Gesprächsverlauf bewertet, was unnötig ist. Think macht den Prozess langsam.
 }
 
+
 # Model-Auswahl
 OLLAMA_MODEL = models[1]
 speaker_ids = []

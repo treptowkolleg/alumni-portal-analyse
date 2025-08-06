@@ -1,7 +1,5 @@
 import os
 import sys
-
-import psutil
 import torch
 
 from tools.lang import APP_TITLE
@@ -34,6 +32,8 @@ os.makedirs(AUDIO_PATH, exist_ok=True)
 os.makedirs(IMAGE_PATH, exist_ok=True)
 os.makedirs(ICON_PATH, exist_ok=True)
 
+WHISPER_MODEL_SIZE = "medium"
+
 CPU_USAGE_UPDATE_RATE = 1000
 
 # Mindestbreite der App
@@ -51,7 +51,18 @@ ratios_named = {
 GPU_NAME = torch.cuda.get_device_name(0) if torch.backends.cudnn.enabled and torch.cuda.is_available() else "None"
 CPU_DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
+"""
+LL-Modelle
+"""
 
+MODELS = {
+    "NeuralBeagle": "eas/neuralbeagle14",
+    "Gemma": "gemma3n:e4b",
+    "Open Hermes": "openhermes",
+    "LLama": "llama3.1",
+    "Deepsek": "deepseek-r1:8b",
+    "Qwen": "qwen3:8b",
+}
 
 
 def get_min_size(ratio: str="16:9"):
