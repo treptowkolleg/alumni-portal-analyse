@@ -1,7 +1,7 @@
 import psutil
-from py3nvml import py3nvml as nvml
 from PyQt6.QtCore import QTimer, Qt
 from PyQt6.QtWidgets import QStatusBar, QLineEdit, QLabel
+from py3nvml import py3nvml as nvml
 
 from tools.desktop import CPU_DEVICE, GPU_NAME, CPU_USAGE_UPDATE_RATE
 

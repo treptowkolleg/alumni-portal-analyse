@@ -18,6 +18,7 @@ PRE_BUFFER = deque(maxlen=PRE_SPEECH_PADDING)
 model, utils = torch.hub.load(repo_or_dir='snakers4/silero-vad', model='silero_vad')
 (get_speech_timestamps, save_audio, read_audio, VADIterator, collect_chunks) = utils
 
+
 class VoiceActivityDetector:
 
     def __init__(self):
@@ -57,4 +58,3 @@ class VoiceActivityDetector:
                     print("⏸️ \tAufnahme pausiert")
                     self.is_recording = False
             self.silence_samples += len(audio)
-

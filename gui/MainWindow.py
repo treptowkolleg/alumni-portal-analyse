@@ -1,21 +1,19 @@
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon, QStandardItemModel, QStandardItem, QFont
 from PyQt6.QtWidgets import QMainWindow, QLabel, QTableView, \
     QWidget, QHeaderView, QVBoxLayout
-from PyQt6.QtCore import Qt
 
-from gui.AlignDeligate import AlignDelegate
 from gui.MenuBar import MenuBar
 from gui.StatusBar import StatusBar
 from gui.ToolBar import ToolBar
 from tools.desktop import get_min_size, get_rel_path, ICON_PATH, WINDOW_TITLE, WINDOW_ICON, WINDOW_RATIO
-from vad.AudioTranscriber import AudioTranscriber
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle(WINDOW_TITLE)
-        self.setWindowIcon(QIcon(get_rel_path(ICON_PATH,WINDOW_ICON)))
+        self.setWindowIcon(QIcon(get_rel_path(ICON_PATH, WINDOW_ICON)))
         self.setMinimumSize(*get_min_size(WINDOW_RATIO))
 
         self.toolbar = ToolBar("Aufnahmesteuerung")
@@ -26,7 +24,7 @@ class MainWindow(QMainWindow):
 
         # Model vorbereiten
         self.model = QStandardItemModel()
-        self.model.setHorizontalHeaderLabels(["Id","Text", "Start", "Ende"])
+        self.model.setHorizontalHeaderLabels(["Id", "Text", "Start", "Ende"])
         self.table.setModel(self.model)
 
         self.configure_column_widths()
@@ -56,18 +54,14 @@ class MainWindow(QMainWindow):
         self.menubar = MenuBar(self)
         self.setMenuBar(self.menubar)
 
-
     def init_status_bar(self):
         self.setStatusBar(StatusBar(self))
-
 
     def init_toolbar(self):
         self.addToolBar(Qt.ToolBarArea.BottomToolBarArea, self.toolbar)
         self.menubar.add_toolbar(self.toolbar)
 
     def update_transcript_table(self, segments):
-
-
 
         for seg in segments:
             text_id = QStandardItem(str(seg["id"]))
@@ -77,7 +71,6 @@ class MainWindow(QMainWindow):
             self.model.appendRow([text_id, text, start, end])
 
         self.configure_column_widths()
-
 
     def add_layout(self):
         central_widget = QWidget()

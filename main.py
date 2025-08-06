@@ -1,9 +1,9 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication, QStyleFactory
+from py3nvml import py3nvml as nvml
 
 from gui.MainWindow import MainWindow
 from tools.desktop import WINDOW_STYLE
-from py3nvml import py3nvml as nvml
 
 """
 Grafische Anwendung einrichten

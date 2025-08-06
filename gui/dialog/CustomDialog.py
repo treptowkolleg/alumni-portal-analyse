@@ -5,7 +5,7 @@ class CustomDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Profil-Training")
-        self.setMinimumSize(640,480)
+        self.setMinimumSize(640, 480)
 
         self.label = QLabel("Trainiere dein Profil..")
         self.button1 = QPushButton("Training starten")

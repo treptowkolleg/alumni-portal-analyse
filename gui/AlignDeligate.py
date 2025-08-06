@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import QStyledItemDelegate
 
+
 class AlignDelegate(QStyledItemDelegate):
     def __init__(self, alignment, parent=None):
         super().__init__(parent)

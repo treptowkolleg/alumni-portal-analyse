@@ -31,7 +31,7 @@ class MenuBar(QMenuBar):
         self.tools_menu = self.addMenu("Tools")
         help_menu = self.addMenu("Hilfe")
 
-        exit_action = QAction(QIcon(get_rel_path(ICON_PATH, "outline/power.svg")),"Beenden", self)
+        exit_action = QAction(QIcon(get_rel_path(ICON_PATH, "outline/power.svg")), "Beenden", self)
         exit_action.triggered.connect(parent.close)
         file_menu.addAction(exit_action)
 
@@ -49,27 +49,26 @@ class MenuBar(QMenuBar):
             self.settings_menu.addAction(action)
 
         self.settings_menu.addSeparator()
-        header = QAction(QIcon(get_rel_path(ICON_PATH, "outline/settings.svg")), "Spezialfunktionen", self.settings_menu)
+        header = QAction(QIcon(get_rel_path(ICON_PATH, "outline/settings.svg")), "Spezialfunktionen",
+                         self.settings_menu)
         header.setEnabled(False)
         self.settings_menu.addAction(header)
 
         self.settings_menu.addAction(CheckboxAction(None, "Turbomodus", parent=self))
-        training_action = Action("treadmill","Trainieren", action_training, self)
+        training_action = Action("treadmill", "Trainieren", action_training, self)
         training_action.triggered.connect(self.show_training_dialog)
         self.tools_menu.addAction(training_action)
 
-
         self.view_menu.addSeparator()
-        header = QAction(QIcon(get_rel_path(ICON_PATH, "outline/tools.svg")),"Werkzeugleisten", self.view_menu)
+        header = QAction(QIcon(get_rel_path(ICON_PATH, "outline/tools.svg")), "Werkzeugleisten", self.view_menu)
         header.setEnabled(False)
         self.view_menu.addAction(header)
 
-        about_action = QAction(QIcon(get_rel_path(ICON_PATH, "outline/question-mark.svg")),"Über", self)
+        about_action = QAction(QIcon(get_rel_path(ICON_PATH, "outline/question-mark.svg")), "Über", self)
         about_action.triggered.connect(self.show_about_dialog)
         help_menu.addAction(about_action)
 
     def add_toolbar(self, toolbar: QToolBar):
-
         action = QAction(toolbar.windowTitle(), self)
         action.setCheckable(True)
         action.setChecked(True)

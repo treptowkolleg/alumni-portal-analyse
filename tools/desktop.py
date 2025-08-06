@@ -1,5 +1,6 @@
 import os
 import sys
+
 import torch
 
 from tools.lang import APP_TITLE
@@ -54,7 +55,6 @@ CPU_DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 """
 LL-Modelle
 """
-
 MODELS = {
     "NeuralBeagle": "eas/neuralbeagle14",
     "Gemma": "gemma3n:e4b",
@@ -65,7 +65,7 @@ MODELS = {
 }
 
 
-def get_min_size(ratio: str="16:9"):
+def get_min_size(ratio: str = "16:9"):
     """
     Maße der Fenstermaße ermitteln
     """
@@ -84,5 +84,3 @@ def get_rel_path(abs_path: str, file: str = None):
     if file is not None:
         path = os.path.join(path, file)
     return path
-
-

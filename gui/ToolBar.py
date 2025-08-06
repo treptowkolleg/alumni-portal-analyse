@@ -3,13 +3,9 @@ from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtSvgWidgets import QSvgWidget
 from PyQt6.QtWidgets import QToolBar, QWidget, QHBoxLayout
 
-from gui.widget.Action import Action
 from tools.desktop import get_rel_path, ICON_PATH
 from vad.AudioTranscriber import AudioTranscriber
 from vad.RecorderWorker import RecorderWorker
-from vad.VoiceActivityDetector import VoiceActivityDetector, VAD_CHANNELS, VAD_SAMPLING_RATE, VAD_BLOCK_SIZE, \
-    MAX_SILENCE_SAMPLES
-import sounddevice as sd
 
 
 class ToolBar(QToolBar):
@@ -51,11 +47,11 @@ class ToolBar(QToolBar):
         self.addAction(self.stop_action)
         self.addSeparator()
 
-
     def on_recording_stopped(self):
         self.start_action.setEnabled(True)
         self.stop_action.setEnabled(False)
         self.rec_state_action.load(get_rel_path(ICON_PATH, "outline/microphone-off.svg"))
+        self.transcriber.id_count = 0
         print("⏹️ \tGestoppt")
 
     def on_speech_detected(self):
