@@ -72,10 +72,10 @@ class StatusBar(QStatusBar):
         usage = psutil.cpu_percent(interval=None)
         ram_used = psutil.virtual_memory().used
         ram_current = abs(ram_used - self.ram_last) / 1024 ** 3
-        self.cpu_usage.setText(f"{usage:.1f}%")
-        self.ram_percent.setText(f"{ram_current:.3f}GB/s")
+        self.cpu_usage.setText(f"{usage:.1f} %")
+        self.ram_percent.setText(f"{ram_current:.3f} GB/s")
         self.ram_last = ram_used
 
         util = nvml.nvmlDeviceGetUtilizationRates(self.handle)
-        self.gpu_core_usage.setText(f"{util.gpu:.1f}%")
-        self.gpu_ram_usage.setText(f"{util.memory:.1f}%")
+        self.gpu_core_usage.setText(f"{util.gpu:.1f} %")
+        self.gpu_ram_usage.setText(f"{util.memory:.1f} %")

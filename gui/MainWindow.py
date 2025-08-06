@@ -26,7 +26,7 @@ class MainWindow(QMainWindow):
 
         # Model vorbereiten
         self.model = QStandardItemModel()
-        self.model.setHorizontalHeaderLabels(["ID", "Text", "Start", "Ende"])
+        self.model.setHorizontalHeaderLabels(["Id","Text", "Start", "Ende"])
         self.table.setModel(self.model)
 
         self.configure_column_widths()
@@ -66,8 +66,8 @@ class MainWindow(QMainWindow):
         self.menubar.add_toolbar(self.toolbar)
 
     def update_transcript_table(self, segments):
-        self.model.clear()
-        self.model.setHorizontalHeaderLabels(["Id","Text", "Start", "Ende"])
+
+
 
         for seg in segments:
             text_id = QStandardItem(str(seg["id"]))

@@ -1,4 +1,4 @@
-from PyQt6.QtCore import QThread
+from PyQt6.QtCore import QThread, Qt
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtSvgWidgets import QSvgWidget
 from PyQt6.QtWidgets import QToolBar, QWidget, QHBoxLayout
@@ -85,7 +85,7 @@ class ToolBar(QToolBar):
         self.worker.started.connect(lambda: print("▶️ Aufnahme gestartet"))
         self.worker.speech_detected.connect(self.on_speech_detected)
         self.worker.speech_lost.connect(self.on_speech_lost)
-        self.worker.recording_done.connect(self.transcriber.process_recording)
+        self.worker.recording_done.connect(self.transcriber.process_recording, Qt.ConnectionType.QueuedConnection)
         self.worker.finished.connect(self.on_recording_stopped)
 
         self.thread.start()
