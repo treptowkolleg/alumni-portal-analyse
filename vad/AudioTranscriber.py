@@ -1,17 +1,14 @@
 import hdbscan
 import numpy as np
 import soundfile as sf
-from PyQt6.QtCore import QObject, pyqtSignal
-from ctranslate2 import Encoder
 from faster_whisper import WhisperModel
+from resemblyzer import VoiceEncoder, preprocess_wav
+from resemblyzer.hparams import sampling_rate
 from scipy.io.wavfile import write
 from sklearn.preprocessing import normalize
-from sklearn.metrics import pairwise_distances
 
 from tools.desktop import CPU_DEVICE, WHISPER_MODEL_SIZE
 from vad.VoiceActivityDetector import VAD_SAMPLING_RATE, read_audio
-from resemblyzer import VoiceEncoder, preprocess_wav
-from resemblyzer.hparams import sampling_rate
 
 whisper = WhisperModel(WHISPER_MODEL_SIZE, compute_type="int8", device=CPU_DEVICE)
 
@@ -45,6 +42,16 @@ class AudioTranscriber:
         """
         AudioTranscriber mit optimierten Parametern für bessere Sprechererkennung
         """
+        self.merge_gap_threshold = merge_gap_threshold
+        self.allow_single_cluster = allow_single_cluster
+        self.cluster_selection_epsilon = cluster_selection_epsilon
+        self.min_samples = min_samples
+        self.min_cluster_size_factor = min_cluster_size_factor
+        self.min_segments = min_segments
+        self.min_segment_duration = min_segment_duration
+        self.hop_size = hop_size
+        self.window_size = window_size
+        self.min_duration_for_diarization = min_duration_for_diarization
         self.encoder = VoiceEncoder()
 
         # Alle Parameter speichern
