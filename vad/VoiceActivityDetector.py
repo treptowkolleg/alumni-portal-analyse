@@ -43,7 +43,6 @@ class VoiceActivityDetector:
 
         if speech_prob > 0.6:
             if not self.is_recording:
-                print("🔴 \tSprache erkannt")
                 self.silence_samples = 0
                 self.recording.append(np.array(PRE_BUFFER))
             self.is_recording = True
@@ -55,6 +54,5 @@ class VoiceActivityDetector:
                     self.recording.append(audio.copy())
                     self.post_speech_countdown -= len(audio)
                 else:
-                    print("⏸️ \tAufnahme pausiert")
                     self.is_recording = False
             self.silence_samples += len(audio)

@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QDialog, QLabel, QPushButton, QVBoxLayout
+from PyQt6.QtWidgets import QDialog, QLabel, QPushButton, QVBoxLayout, QFormLayout, QLineEdit, QComboBox
 
 
 class CustomDialog(QDialog):
@@ -8,15 +8,17 @@ class CustomDialog(QDialog):
         self.setMinimumSize(640, 480)
 
         self.label = QLabel("Trainiere dein Profil..")
-        self.button1 = QPushButton("Training starten")
-        self.button2 = QPushButton("Abbrechen")
 
-        self.button1.clicked.connect(self.accept)
-        self.button2.clicked.connect(self.reject)
+        layout = QFormLayout()
 
-        layout = QVBoxLayout()
-        layout.addWidget(self.label)
-        layout.addWidget(self.button1)
-        layout.addWidget(self.button2)
+        # Mit Label-Widgets
+        layout.addRow(QLabel("Benutzername:"), QLineEdit())
+        layout.addRow(QLabel("Passwort:"), QLineEdit())
+        layout.addRow(QLabel("Rolle:"), QComboBox())
+
+        # Breite Zeile für Button
+        button = QPushButton("Login")
+        button.clicked.connect(self.accept)
+        layout.addRow(button)
 
         self.setLayout(layout)

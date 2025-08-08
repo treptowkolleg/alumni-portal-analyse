@@ -1,5 +1,8 @@
+import sys
+
+from PIL.ImageQt import QPixmap
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QApplication, QStyleFactory
+from PyQt6.QtWidgets import QApplication, QStyleFactory, QSplashScreen
 from py3nvml import py3nvml as nvml
 
 from gui.MainWindow import MainWindow
@@ -16,5 +19,4 @@ app.styleHints().setColorScheme(Qt.ColorScheme.Dark)
 nvml.nvmlInit()
 window = MainWindow()
 window.show()
-app.exec()
-nvml.nvmlShutdown()
+sys.exit(app.exec())

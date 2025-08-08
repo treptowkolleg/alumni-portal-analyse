@@ -1,33 +1,32 @@
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QIcon, QStandardItemModel, QStandardItem, QFont
-from PyQt6.QtWidgets import QMainWindow, QLabel, QTableView, \
-    QWidget, QHeaderView, QVBoxLayout
+from PyQt6.QtCore import Qt, QThread, QTimer
+from PyQt6.QtGui import QIcon, QFont
+from PyQt6.QtWidgets import QMainWindow, QLabel, QWidget, QVBoxLayout, QHBoxLayout, QTableWidget
 
 from gui.MenuBar import MenuBar
 from gui.StatusBar import StatusBar
 from gui.ToolBar import ToolBar
+from gui.TranscriptTableView import TranscriptTable
 from tools.desktop import get_min_size, get_rel_path, ICON_PATH, WINDOW_TITLE, WINDOW_ICON, WINDOW_RATIO
+from vad.RecorderWorker import RecorderWorker
+from vad.TranscriberWorker import TranscriberWorker
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.transcriber_worker = None
+        self.transcriber_thread = None
+        self.recorder_worker = None
+        self.recorder_thread = None
+
         self.setWindowTitle(WINDOW_TITLE)
         self.setWindowIcon(QIcon(get_rel_path(ICON_PATH, WINDOW_ICON)))
         self.setMinimumSize(*get_min_size(WINDOW_RATIO))
 
-        self.toolbar = ToolBar("Aufnahmesteuerung")
-        self.toolbar.transcriber.transcription_ready.connect(self.update_transcript_table)
-
         # Tabelle vorbereiten
-        self.table = QTableView()
+        self.transcript_table = TranscriptTable()
 
-        # Model vorbereiten
-        self.model = QStandardItemModel()
-        self.model.setHorizontalHeaderLabels(["Id", "Text", "Start", "Ende"])
-        self.table.setModel(self.model)
-
-        self.configure_column_widths()
+        self.toolbar = ToolBar("Aufnahmesteuerung")
 
         # Komponenten initialisieren
         self.menubar = None
@@ -35,20 +34,11 @@ class MainWindow(QMainWindow):
         self.init_status_bar()
         self.init_toolbar()
         self.add_layout()
+        self.setup_recorder()
+        self.setup_transcriber()
 
-    def configure_column_widths(self):
-        header = self.table.horizontalHeader()
-        header.setStretchLastSection(False)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-
-        self.table.resizeColumnsToContents()
-
-        if self.table.columnWidth(0) < 60:
-            self.table.setColumnWidth(0, 60)
-        if self.table.columnWidth(2) < 60:
-            self.table.setColumnWidth(2, 60)
-        if self.table.columnWidth(3) < 60:
-            self.table.setColumnWidth(3, 60)
+        self.toolbar.start_action.triggered.connect(self.start_recording)
+        self.toolbar.stop_action.triggered.connect(self.stop_recording)
 
     def init_menu(self):
         self.menubar = MenuBar(self)
@@ -61,22 +51,15 @@ class MainWindow(QMainWindow):
         self.addToolBar(Qt.ToolBarArea.BottomToolBarArea, self.toolbar)
         self.menubar.add_toolbar(self.toolbar)
 
-    def update_transcript_table(self, segments):
-
-        for seg in segments:
-            text_id = QStandardItem(str(seg["id"]))
-            start = QStandardItem(str(seg["start"]))
-            end = QStandardItem(str(seg["end"]))
-            text = QStandardItem(seg["text"])
-            self.model.appendRow([text_id, text, start, end])
-
-        self.configure_column_widths()
-
     def add_layout(self):
         central_widget = QWidget()
-        layout = QVBoxLayout()
-        central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
+        central_layout = QHBoxLayout()
+        central_widget.setLayout(central_layout)
+
+        table_widget = QTableWidget()
+        table_layout = QVBoxLayout()
+        table_widget.setLayout(table_layout)
 
         # Fenster anzeigen
         table_titel = QLabel("Erfasste Transkription")
@@ -84,5 +67,108 @@ class MainWindow(QMainWindow):
         font.setPointSize(10)
         font.setWeight(QFont.Weight.Bold)
         table_titel.setFont(font)
-        layout.addWidget(table_titel)
-        layout.addWidget(self.table)
+
+        table_layout.addWidget(table_titel)
+        table_layout.addWidget(self.transcript_table)
+
+        central_layout.addWidget(table_widget)
+
+    def setup_recorder(self):
+        self.recorder_thread = QThread()
+        self.recorder_worker = RecorderWorker()
+
+        self.recorder_worker.moveToThread(self.recorder_thread)
+
+        # Signale verbinden
+        self.recorder_thread.started.connect(self.recorder_worker.run_forever)
+        self.recorder_worker.speech_detected.connect(self.on_speech_detected)
+        self.recorder_worker.speech_lost.connect(self.on_speech_lost)
+        self.recorder_worker.recording_done.connect(self.on_recording_done)
+        self.recorder_worker.status_update.connect(self.update_recorder_status)
+        self.recorder_worker.error_occurred.connect(self.handle_recorder_error)
+
+        self.recorder_thread.start()
+
+    def setup_transcriber(self):
+        self.transcriber_thread = QThread()
+        self.transcriber_worker = TranscriberWorker()
+
+        self.transcriber_worker.moveToThread(self.transcriber_thread)
+
+        # Signale verbinden
+        self.transcriber_thread.started.connect(self.transcriber_worker.run_forever)
+        self.transcriber_worker.transcription_ready.connect(self.on_transcription_ready)
+        self.transcriber_worker.status_update.connect(self.update_transcriber_status)
+        self.transcriber_worker.error_occurred.connect(self.handle_transcriber_error)
+        self.transcriber_worker.task_completed.connect(self.on_transcription_task_completed)
+
+        self.transcriber_worker.progress_update.connect(self.update_progress)
+
+        self.transcriber_thread.start()
+
+    def on_speech_detected(self):
+        if self.recorder_worker.is_recording_active is True:
+            self.toolbar.on_speech_detected()
+        else:
+            self.toolbar.on_speech_lost()
+
+    def on_speech_lost(self):
+        self.toolbar.on_speech_lost()
+
+    def on_recording_done(self, recording):
+        """Wird aufgerufen, wenn eine Aufnahme fertig ist"""
+        # Füge Transkriptionsaufgabe hinzu
+        self.transcriber_worker.add_transcription_task(recording)
+
+    def on_transcription_ready(self, result):
+        """Wird aufgerufen, wenn Transkription fertig ist"""
+        self.transcript_table.update_transcript_table(result)
+
+    def on_transcription_task_completed(self):
+        QTimer.singleShot(1000, lambda: self.show_transcription_progress(False))
+
+    def update_recorder_status(self, status):
+        print(f"Recorder-Status: {status}")
+
+    def update_transcriber_status(self, status):
+        pass
+
+    def show_transcription_progress(self, show=True):
+        """Zeige/Verstecke Fortschrittsanzeige"""
+        if show:
+            self.statusBar().status_label.setText("Transkription läuft...")
+            self.statusBar().progress_bar.setRange(0, 0)  # Unbestimmter Fortschritt
+        else:
+            self.statusBar().status_label.setText("Bereit")
+            self.statusBar().progress_bar.setRange(0, 100)
+
+    def update_progress(self, value, maximum=100):
+        """Aktualisiere Fortschritt (0-100)"""
+        if maximum > 0:
+            self.statusBar().progress_bar.setRange(0, 0)
+            self.statusBar().status_label.setText(f"Transkription")
+
+    def handle_recorder_error(self, e):
+        print(f"Recorder-Error: {e}")
+
+    def handle_transcriber_error(self, e):
+        print(f"Transcriber-Error: {e}")
+
+    def start_recording(self):
+        """Starte Aufnahme (falls benötigt)"""
+        self.toolbar.start_recording()
+        self.recorder_worker.start_recording()
+
+    def stop_recording(self):
+        """Stoppe Aufnahme"""
+        self.recorder_worker.stop_recording()
+        self.toolbar.stop_recording()
+
+    def cleanup(self):
+        """Beim Beenden aufräumen"""
+        self.recorder_worker.stop_worker()
+        self.recorder_thread.quit()
+        self.recorder_thread.wait()
+        self.transcriber_worker.stop_worker()
+        self.transcriber_thread.quit()
+        self.transcriber_thread.wait()

@@ -10,33 +10,25 @@ from vad.VoiceActivityDetector import VAD_SAMPLING_RATE, read_audio
 whisper = WhisperModel(WHISPER_MODEL_SIZE, compute_type="int8", device=CPU_DEVICE)
 
 
-class AudioTranscriber(QObject):
-    transcription_ready = pyqtSignal(list)
-
+class AudioTranscriber:
     id_count = 0
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
 
     def process_recording(self, recording):
         audio_data = np.concatenate(recording)
         write("output.wav", VAD_SAMPLING_RATE, (audio_data * 32767).astype(np.int16))
-        print("💬 \tAufnahme wird transkribiert")
-
         # --------------------------
         # Segment-Analyse mit get_speech_timestamps
         # --------------------------
         wav = read_audio("output.wav", sampling_rate=VAD_SAMPLING_RATE)
         audio_data, sr = sf.read("output.wav")
 
-        segments, _ = whisper.transcribe(audio_data, language="de", word_timestamps=False)
+        segments, _ = whisper.transcribe(audio_data, language="de", word_timestamps=True)
 
         whisper_segments = list(segments)
+        result = []
         if not whisper_segments:
-            self.transcription_ready.emit([])
-            print(f"⚠️ \tKeinen Text erkannt")
+            pass
         else:
-            result = []
             for seg_idx, seg in enumerate(whisper_segments):
                 result.append({
                     "id": self.id_count,
@@ -44,9 +36,6 @@ class AudioTranscriber(QObject):
                     "end": round(seg.end, 1),
                     "text": seg.text.strip()
                 })
-                print(f"{seg_idx}:\t{seg.text.strip()}")
                 self.id_count += 1
 
-            self.transcription_ready.emit(result)
-
-        print("⏹️ \tDurchgang beendet")
+        return result

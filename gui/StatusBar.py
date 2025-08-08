@@ -1,6 +1,6 @@
 import psutil
 from PyQt6.QtCore import QTimer, Qt
-from PyQt6.QtWidgets import QStatusBar, QLineEdit, QLabel
+from PyQt6.QtWidgets import QStatusBar, QLineEdit, QLabel, QProgressBar
 from py3nvml import py3nvml as nvml
 
 from tools.desktop import CPU_DEVICE, GPU_NAME, CPU_USAGE_UPDATE_RATE
@@ -21,6 +21,8 @@ class StatusBar(QStatusBar):
         self.gpu_name = QLineEdit(GPU_NAME)
         self.gpu_core_usage = QLineEdit()
         self.gpu_ram_usage = QLineEdit()
+        self.progress_bar = QProgressBar()
+        self.status_label = QLabel("Bereit")
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_system_sensors)
@@ -54,7 +56,13 @@ class StatusBar(QStatusBar):
         self.gpu_ram_usage.setFixedWidth(50)
         self.gpu_ram_usage.setAlignment(Qt.AlignmentFlag.AlignRight)
 
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setFixedWidth(50)
+
         # Widgets hinzufügen
+        self.addPermanentWidget(self.status_label)
+        self.addPermanentWidget(self.progress_bar)
         self.addPermanentWidget(QLabel("CPU-Last:"))
         self.addPermanentWidget(self.cpu_usage)
         self.addPermanentWidget(QLabel("RAM-Rate:"))
