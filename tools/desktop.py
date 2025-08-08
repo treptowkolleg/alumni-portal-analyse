@@ -60,7 +60,7 @@ MODELS = {
     "Gemma": "gemma3n:e4b",
     "Open Hermes": "openhermes",
     "LLama": "llama3.1",
-    "Deepsek": "deepseek-r1:8b",
+    "Deepseek": "deepseek-r1:8b",
     "Qwen": "qwen3:8b",
 }
 

@@ -1,6 +1,6 @@
 from PyQt6.QtCore import Qt, QThread, QTimer
-from PyQt6.QtGui import QIcon, QFont
-from PyQt6.QtWidgets import QMainWindow, QLabel, QWidget, QVBoxLayout, QHBoxLayout, QTableWidget
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout
 
 from gui.MenuBar import MenuBar
 from gui.SpeakerTableView import SpeakerTable
@@ -72,7 +72,6 @@ class MainWindow(QMainWindow):
         speaker_table_layout = QVBoxLayout()
         speaker_table_widget.setLayout(speaker_table_layout)
 
-
         # Fenster anzeigen
 
         table_layout.addWidget(self.transcript_table)
@@ -81,8 +80,8 @@ class MainWindow(QMainWindow):
         speaker_table_layout.addWidget(self.speaker_table)
         speaker_table_layout.setContentsMargins(0, 0, 0, 0)
 
-        main_layout.addWidget(speaker_table_widget,3)
-        main_layout.addWidget(table_widget,8)
+        main_layout.addWidget(speaker_table_widget, 3)
+        main_layout.addWidget(table_widget, 8)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
@@ -180,6 +179,47 @@ class MainWindow(QMainWindow):
         """Stoppe Aufnahme"""
         self.recorder_worker.stop_recording()
         self.toolbar.stop_recording()
+
+    def closeEvent(self, event):
+        """Wird aufgerufen, wenn das Fenster geschlossen wird"""
+        print("Anwendung wird beendet - räume auf...")
+
+        # Stoppe Aufnahme, falls aktiv
+        try:
+            self.stop_recording()
+        except:
+            pass
+
+        # Worker stoppen
+        try:
+            if self.recorder_worker:
+                self.recorder_worker.stop_worker()
+        except:
+            pass
+
+        try:
+            if self.transcriber_worker:
+                self.transcriber_worker.stop_worker()
+        except:
+            pass
+
+        # Threads beenden (mit Timeout)
+        try:
+            if self.recorder_thread:
+                self.recorder_thread.quit()
+                self.recorder_thread.wait(1000)
+        except:
+            pass
+
+        try:
+            if self.transcriber_thread:
+                self.transcriber_thread.quit()
+                self.transcriber_thread.wait(1000)
+        except:
+            pass
+
+        print("Aufräumen abgeschlossen")
+        event.accept()
 
     def cleanup(self):
         """Beim Beenden aufräumen"""

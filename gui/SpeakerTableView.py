@@ -23,8 +23,8 @@ class SpeakerTable(TableView):
 
     def update_table(self, segments):
         # Zuerst leeren wir die Tabelle
-        self.model.removeRows(0, self.model.rowCount())
-        self.id_combos.clear()
+        # self.model.removeRows(0, self.model.rowCount())
+        # self.id_combos.clear()
 
         # Gruppiere Segmente nach Sprecher
         speaker_segments = {}
@@ -37,7 +37,7 @@ class SpeakerTable(TableView):
         # Füge zusammengefasste Einträge hinzu
         for speaker, segs in speaker_segments.items():
             # Alle IDs dieses Sprechers sammeln
-            ids_list = [str(seg["id"]) for seg in segs]
+            ids_list = [str(seg["idn"]) for seg in segs]
 
             # Erstelle Model-Items
             ids_display = QStandardItem(", ".join(ids_list))  # Anzeige aller IDs
