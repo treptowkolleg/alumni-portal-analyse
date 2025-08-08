@@ -1,5 +1,7 @@
+from functools import partial
+
 from PyQt6.QtCore import Qt, QThread, QTimer
-from PyQt6.QtGui import QIcon
+from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout
 
 from gui.MenuBar import MenuBar
@@ -7,7 +9,9 @@ from gui.SpeakerTableView import SpeakerTable
 from gui.StatusBar import StatusBar
 from gui.ToolBar import ToolBar
 from gui.TranscriptTableView import TranscriptTable
-from tools.desktop import get_min_size, get_rel_path, ICON_PATH, WINDOW_TITLE, WINDOW_ICON, WINDOW_RATIO
+from gui.widget.CheckboxAction import CheckboxAction
+from tools.desktop import get_min_size, get_rel_path, ICON_PATH, WINDOW_TITLE, WINDOW_ICON, WINDOW_RATIO, \
+    WHISPER_SPEAKER_RULE
 from vad.RecorderWorker import RecorderWorker
 from vad.TranscriberWorker import TranscriberWorker
 
@@ -32,7 +36,7 @@ class MainWindow(QMainWindow):
         self.toolbar = ToolBar("Aufnahmesteuerung")
 
         # Komponenten initialisieren
-        self.menubar = None
+        self.menubar = MenuBar(self)
         self.init_menu()
         self.init_status_bar()
         self.init_toolbar()
@@ -43,8 +47,26 @@ class MainWindow(QMainWindow):
         self.toolbar.start_action.triggered.connect(self.start_recording)
         self.toolbar.stop_action.triggered.connect(self.stop_recording)
 
+        whisper_option = {
+            "streng": "conservative",
+            "ausgewogen": "balanced",
+            "locker": "liberal",
+        }
+
+        self.menubar.settings_menu.addSeparator()
+        whisper_header = QAction(QIcon(get_rel_path(ICON_PATH, "outline/ai.svg")), "Ermittlung der Sprecher",
+                                 self.menubar.settings_menu)
+        whisper_header.setEnabled(False)
+        self.menubar.settings_menu.addAction(whisper_header)
+
+        for name, value in whisper_option.items():
+            whisper_action = CheckboxAction(text=name, action=partial(self.transcriber_worker.transcriber.set_preset, value), parent=self)
+            self.menubar.action_group_whisper.addAction(whisper_action)
+            self.menubar.settings_menu.addAction(whisper_action)
+            if value == WHISPER_SPEAKER_RULE:
+                whisper_action.setChecked(True)
+
     def init_menu(self):
-        self.menubar = MenuBar(self)
         self.setMenuBar(self.menubar)
 
     def init_status_bar(self):

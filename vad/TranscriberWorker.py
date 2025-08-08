@@ -3,6 +3,7 @@ import time
 
 from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot, QTimer
 
+from tools.desktop import WHISPER_SPEAKER_RULE
 from vad.AudioTranscriber import AudioTranscriber
 
 
@@ -24,7 +25,7 @@ class TranscriberWorker(QObject):
         """Initialisiere den AudioTranscriber"""
         try:
             self.transcriber = AudioTranscriber()
-            self.transcriber.set_preset('liberal')
+            self.transcriber.set_preset(WHISPER_SPEAKER_RULE)
 
             self.status_update.emit("Transkriptionsmodell geladen")
         except Exception as e:

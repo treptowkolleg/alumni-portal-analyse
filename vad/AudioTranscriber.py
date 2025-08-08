@@ -206,7 +206,11 @@ class AudioTranscriber:
 
         # **Normale Verarbeitung wenn ausreichend Cluster**
         if len(normal_clusters) >= 2:
-            return self.create_improved_speaker_timeline(segments, labels, normal_clusters, duration)
+            improved_segments = self.create_improved_speaker_timeline(segments, labels, normal_clusters, duration)
+
+            # Speichere die verbesserten Segmente für die spätere Verwendung
+            self.last_improved_segments = improved_segments
+            return improved_segments
 
         return [(0.0, duration, "Sprecher 0")]
 
@@ -315,55 +319,96 @@ class AudioTranscriber:
 
     def merge_speaker_with_transcript(self, transcript_segments, speaker_segments):
         """Führe Speaker-Informationen mit Transkript-Segmenten zusammen"""
+        # Verwende verbesserte Segmente
+        if hasattr(self, 'last_improved_segments') and self.last_improved_segments:
+            speaker_segments = self.last_improved_segments
+
         if not speaker_segments or not transcript_segments:
             for seg in transcript_segments:
                 seg["speaker"] = "Sprecher 0"
             return transcript_segments
 
-        # Für jedes Transkript-Segment den passenden Sprecher finden
+        # FEINERE Analyse für kurze Pausen
         for transcript_seg in transcript_segments:
             segment_start = transcript_seg["start"]
             segment_end = transcript_seg["end"]
 
-            speaker = self.find_speaker_for_segment(segment_start, segment_end, speaker_segments)
+            speaker = self.find_speaker_for_short_pause_scenario(
+                segment_start, segment_end, speaker_segments
+            )
             transcript_seg["speaker"] = speaker
+
+        # Aufräumen
+        if hasattr(self, 'last_improved_segments'):
+            delattr(self, 'last_improved_segments')
 
         return transcript_segments
 
-    def find_speaker_for_segment(self, segment_start, segment_end, speaker_segments):
-        """Finde den Sprecher - verbesserte Methode"""
-        if not speaker_segments:
-            return "Sprecher 0"
+    def find_speaker_for_short_pause_scenario(self, segment_start, segment_end, speaker_segments):
+        """Spezialisierte Methode für kurze Pausen zwischen Sprechern"""
 
-        # Berechne Überlappung mit allen Sprecher-Segmenten
-        best_speaker = "Sprecher 0"
-        max_overlap = 0
+        # 1. Exakte Überlappungsanalyse
+        overlap_scores = {}
+        segment_duration = segment_end - segment_start
 
         for speaker_start, speaker_end, speaker_name in speaker_segments:
+            # Berechne Überlappung
             overlap_start = max(segment_start, speaker_start)
             overlap_end = min(segment_end, speaker_end)
 
             if overlap_start < overlap_end:
                 overlap_duration = overlap_end - overlap_start
-                if overlap_duration > max_overlap:
-                    max_overlap = overlap_duration
-                    best_speaker = speaker_name
+                # Prozentualer Anteil der Überlappung
+                overlap_percentage = (overlap_duration / segment_duration) * 100
+                overlap_scores[speaker_name] = overlap_percentage
 
-        # Wenn keine Überlappung, nehme zeitlich nächsten Sprecher
-        if max_overlap == 0:
-            min_distance = float('inf')
-            for speaker_start, speaker_end, speaker_name in speaker_segments:
-                segment_mid = (segment_start + segment_end) / 2
-                speaker_mid = (speaker_start + speaker_end) / 2
-                distance = abs(segment_mid - speaker_mid)
-                if distance < min_distance:
-                    min_distance = distance
-                    best_speaker = speaker_name
+        # 2. Wenn klare Überlappung existiert
+        if overlap_scores:
+            best_speaker = max(overlap_scores, key=overlap_scores.get)
+            best_overlap = overlap_scores[best_speaker]
 
-        return best_speaker
+            # Bei hoher Überlappung (>50%) diese verwenden
+            if best_overlap > 50:
+                return best_speaker
+
+        # 3. Bei geringer oder keiner Überlappung: Kontext-basierte Analyse
+        segment_mid = (segment_start + segment_end) / 2
+
+        # Finde den zeitlich nächsten Sprecher
+        nearest_speaker = None
+        min_time_distance = float('inf')
+
+        for speaker_start, speaker_end, speaker_name in speaker_segments:
+            # Abstand zum Sprecher-Segment
+            if segment_mid < speaker_start:
+                distance = speaker_start - segment_end
+            elif segment_mid > speaker_end:
+                distance = segment_start - speaker_end
+            else:
+                distance = 0  # Überlappend
+
+            if distance < min_time_distance:
+                min_time_distance = distance
+                nearest_speaker = speaker_name
+
+        # 4. Spezielle Logik für sehr kurze Pausen (< 1 Sekunde)
+        if min_time_distance < 1.0:
+            # Prüfe zeitliche Reihenfolge
+            for i, (speaker_start, speaker_end, speaker_name) in enumerate(speaker_segments):
+                # Wenn Segment direkt nach diesem Sprecher kommt
+                if abs(segment_start - speaker_end) < 0.3:
+                    return speaker_name
+                # Wenn Segment direkt vor diesem Sprecher kommt
+                if abs(segment_end - speaker_start) < 0.3:
+                    return speaker_name
+
+        return nearest_speaker if nearest_speaker else "Sprecher 0"
 
     def set_preset(self, preset_name):
         """Setze vordefinierte Parameter-Sets"""
+
+        print(f"set preset {preset_name}")
+
         presets = {
             'conservative': {  # Sehr konservativ
                 'window_size': 2.0,

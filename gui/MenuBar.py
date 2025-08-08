@@ -48,28 +48,11 @@ class MenuBar(QMenuBar):
             action_group.addAction(action)
             self.settings_menu.addAction(action)
             if name == "Gemma":
-                action.selected = True
+                action.setChecked(True)
 
-        self.settings_menu.addSeparator()
-        whisper_header = QAction(QIcon(get_rel_path(ICON_PATH, "outline/ai.svg")), "Ermittlung der Sprecher", self.settings_menu)
-        whisper_header.setEnabled(False)
-        self.settings_menu.addAction(whisper_header)
 
-        action_group_whisper = QActionGroup(self.settings_menu)
-        action_group_whisper.setExclusive(True)
-
-        whisper_option = {
-            "konservativ" : "conservative",
-            "ausgewogen" : "balanced",
-            "liberal" : "liberal",
-        }
-
-        for name, setting in whisper_option.items():
-            action = CheckboxAction(text=name, action=partial(print_action, setting), parent=self)
-            action_group_whisper.addAction(action)
-            self.settings_menu.addAction(action)
-            if name == "ausgewogen":
-                action.selected = True
+        self.action_group_whisper = QActionGroup(self.settings_menu)
+        self.action_group_whisper.setExclusive(True)
 
         self.settings_menu.addSeparator()
         header = QAction(QIcon(get_rel_path(ICON_PATH, "outline/settings.svg")), "Spezialfunktionen",

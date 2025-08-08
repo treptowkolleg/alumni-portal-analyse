@@ -34,6 +34,7 @@ os.makedirs(IMAGE_PATH, exist_ok=True)
 os.makedirs(ICON_PATH, exist_ok=True)
 
 WHISPER_MODEL_SIZE = "medium"
+WHISPER_SPEAKER_RULE = "liberal"
 
 CPU_USAGE_UPDATE_RATE = 1000
 
