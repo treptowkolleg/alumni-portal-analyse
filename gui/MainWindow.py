@@ -3,6 +3,7 @@ from PyQt6.QtGui import QIcon, QFont
 from PyQt6.QtWidgets import QMainWindow, QLabel, QWidget, QVBoxLayout, QHBoxLayout, QTableWidget
 
 from gui.MenuBar import MenuBar
+from gui.SpeakerTableView import SpeakerTable
 from gui.StatusBar import StatusBar
 from gui.ToolBar import ToolBar
 from gui.TranscriptTableView import TranscriptTable
@@ -14,6 +15,7 @@ from vad.TranscriberWorker import TranscriberWorker
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+
         self.transcriber_worker = None
         self.transcriber_thread = None
         self.recorder_worker = None
@@ -25,6 +27,7 @@ class MainWindow(QMainWindow):
 
         # Tabelle vorbereiten
         self.transcript_table = TranscriptTable()
+        self.speaker_table = SpeakerTable()
 
         self.toolbar = ToolBar("Aufnahmesteuerung")
 
@@ -57,21 +60,34 @@ class MainWindow(QMainWindow):
         central_layout = QHBoxLayout()
         central_widget.setLayout(central_layout)
 
-        table_widget = QTableWidget()
+        main_widget = QWidget()
+        main_layout = QHBoxLayout()
+        main_widget.setLayout(main_layout)
+
+        table_widget = QWidget()
         table_layout = QVBoxLayout()
         table_widget.setLayout(table_layout)
 
+        speaker_table_widget = QWidget()
+        speaker_table_layout = QVBoxLayout()
+        speaker_table_widget.setLayout(speaker_table_layout)
+
+
         # Fenster anzeigen
-        table_titel = QLabel("Erfasste Transkription")
-        font = table_titel.font()
-        font.setPointSize(10)
-        font.setWeight(QFont.Weight.Bold)
-        table_titel.setFont(font)
 
-        table_layout.addWidget(table_titel)
         table_layout.addWidget(self.transcript_table)
+        table_layout.setContentsMargins(0, 0, 0, 0)
 
-        central_layout.addWidget(table_widget)
+        speaker_table_layout.addWidget(self.speaker_table)
+        speaker_table_layout.setContentsMargins(0, 0, 0, 0)
+
+        main_layout.addWidget(speaker_table_widget,3)
+        main_layout.addWidget(table_widget,8)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+
+        central_layout.addWidget(main_widget)
+        central_layout.setContentsMargins(0, 0, 0, 0)
 
     def setup_recorder(self):
         self.recorder_thread = QThread()
@@ -123,6 +139,7 @@ class MainWindow(QMainWindow):
     def on_transcription_ready(self, result):
         """Wird aufgerufen, wenn Transkription fertig ist"""
         self.transcript_table.update_transcript_table(result)
+        self.speaker_table.update_table(result)
 
     def on_transcription_task_completed(self):
         QTimer.singleShot(1000, lambda: self.show_transcription_progress(False))

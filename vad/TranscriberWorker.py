@@ -24,6 +24,8 @@ class TranscriberWorker(QObject):
         """Initialisiere den AudioTranscriber"""
         try:
             self.transcriber = AudioTranscriber()
+            self.transcriber.set_preset('liberal')
+
             self.status_update.emit("Transkriptionsmodell geladen")
         except Exception as e:
             self.error_occurred.emit(f"Fehler beim Laden des Transkriptionsmodells: {str(e)}")

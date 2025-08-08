@@ -6,7 +6,7 @@ from gui.TableView import TableView
 
 class TranscriptTable(TableView):
     def __init__(self, parent=None):
-        super(TranscriptTable, self).__init__(["Id", "Sprecher", "Text", "Start", "Ende"], parent)
+        super(TranscriptTable, self).__init__(["#", "Sprecher", "Text", "Start", "Ende"], parent)
         self.configure_column_widths()
 
     def configure_column_widths(self):
@@ -16,8 +16,8 @@ class TranscriptTable(TableView):
 
         self.resizeColumnsToContents()
 
-        if self.columnWidth(0) < 60:
-            self.setColumnWidth(0, 60)
+        if self.columnWidth(0) < 30:
+            self.setColumnWidth(0, 30)
         if self.columnWidth(3) < 60:
             self.setColumnWidth(3, 60)
         if self.columnWidth(4) < 60:
