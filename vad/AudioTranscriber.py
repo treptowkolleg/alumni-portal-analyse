@@ -75,7 +75,8 @@ class AudioTranscriber:
         else:
             for seg_idx, seg in enumerate(whisper_segments):
                 result.append({
-                    "id": self.id_count,
+                    "idn": self.id_count,
+                    "id": seg_idx,
                     "start": round(seg.start, 1),
                     "end": round(seg.end, 1),
                     "text": seg.text.strip()
