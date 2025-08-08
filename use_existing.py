@@ -288,10 +288,11 @@ def detect_speakers(audio_path, min_segment_length=3.0):
 
         # Vektoren normalisieren (für cosine-Distanz erforderlich)
         embeddings_normalized = normalize(embeddings, norm='l2')
+        distance_matrix = pairwise_distances(embeddings_normalized, metric='cosine')
         similarity_matrix = cosine_similarity(embeddings_normalized)
         sigma = 0.6  # anpassen!
         affinity_matrix = np.exp(-1 * (1 - similarity_matrix) ** 2 / (2 * sigma ** 2))
-        distance_matrix = pairwise_distances(embeddings_normalized, metric='cosine')
+
 
 
         reduced = PCA(n_components=2).fit_transform(embeddings_normalized)
