@@ -8,6 +8,7 @@ from gui.MenuBar import MenuBar
 from gui.SpeakerTableView import SpeakerTable
 from gui.StatusBar import StatusBar
 from gui.ToolBar import ToolBar
+from gui.TranscriptDataManager import TranscriptDataManager
 from gui.TranscriptTableView import TranscriptTable
 from gui.widget.CheckboxAction import CheckboxAction
 from tools.desktop import get_min_size, get_rel_path, ICON_PATH, WINDOW_TITLE, WINDOW_ICON, WINDOW_RATIO, \
@@ -30,8 +31,9 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(*get_min_size(WINDOW_RATIO))
 
         # Tabelle vorbereiten
-        self.transcript_table = TranscriptTable()
-        self.speaker_table = SpeakerTable()
+        self.data_manager = TranscriptDataManager()
+        self.transcript_table = TranscriptTable(self.data_manager)
+        self.speaker_table = SpeakerTable(self.data_manager)
 
         self.toolbar = ToolBar("Aufnahmesteuerung")
 
@@ -47,7 +49,7 @@ class MainWindow(QMainWindow):
         self.toolbar.start_action.triggered.connect(self.start_recording)
         self.toolbar.stop_action.triggered.connect(self.stop_recording)
 
-        whisper_option = {
+        whisper_option: dict[str, str] = {
             "streng": "conservative",
             "ausgewogen": "balanced",
             "locker": "liberal",
@@ -161,6 +163,12 @@ class MainWindow(QMainWindow):
         """Wird aufgerufen, wenn Transkription fertig ist"""
         self.transcript_table.update_transcript_table(result)
         self.speaker_table.update_table(result)
+
+    def on_segment_speaker_changed(self, segment_id, new_speaker):
+        """Wird aufgerufen, wenn ein Sprecher für eine Segment-ID geändert wird"""
+        # Sprecher im Datenmanager aktualisieren
+        self.data_manager.update_segment_speaker(segment_id, new_speaker)
+        # Beide Tabellen werden automatisch über dataUpdated-Signal aktualisiert
 
     def on_transcription_task_completed(self):
         QTimer.singleShot(1000, lambda: self.show_transcription_progress(False))

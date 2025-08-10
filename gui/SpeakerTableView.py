@@ -6,8 +6,9 @@ from gui.TableView import TableView
 
 
 class SpeakerTable(TableView):
-    def __init__(self, parent=None):
+    def __init__(self, data_manager, parent=None):
         super(SpeakerTable, self).__init__(["Transkript-IDs", "Sprecher"], parent)
+        self.data_manager = data_manager
         self.configure_column_widths()
         self.id_combos = {}  # Speichere Referenzen zu ComboBoxen
 
