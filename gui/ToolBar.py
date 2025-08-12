@@ -10,21 +10,17 @@ class ToolBar(QToolBar):
     def __init__(self, parent=None):
         super(ToolBar, self).__init__(parent)
 
-        self.start_action = QAction(QIcon(get_rel_path(ICON_PATH, "outline/player-play.svg")), None, self)
+        self.start_action = QAction(QIcon(get_rel_path(ICON_PATH, "player-record.svg")), None, self)
         self.start_action.setStatusTip("Transkription starten")
 
-        self.stop_action = QAction(QIcon(get_rel_path(ICON_PATH, "outline/player-stop.svg")), None, self)
+        self.stop_action = QAction(QIcon(get_rel_path(ICON_PATH, "player-stop.svg")), None, self)
         self.stop_action.setDisabled(True)
         self.stop_action.setStatusTip("Transkription stoppen")
 
-        self.rec_state_action = QSvgWidget(get_rel_path(ICON_PATH, "outline/microphone-off.svg"), self)
+        self.rec_state_action = QSvgWidget(get_rel_path(ICON_PATH, "microphone-off.svg"), self)
         self.rec_state_action.setFixedSize(20, 20)
         self.rec_state_action.setStatusTip("Sprachaktivität")
 
-        save_action = QAction(QIcon(get_rel_path(ICON_PATH, "outline/device-floppy.svg")), None, self)
-        save_action.setDisabled(True)
-        save_action.setStatusTip("Protokoll speichern")
-        # save_action.triggered.connect(self.save_protocol)
 
         container = QWidget()
         layout = QHBoxLayout(container)
@@ -38,16 +34,23 @@ class ToolBar(QToolBar):
         self.addAction(self.stop_action)
         self.addSeparator()
 
+        self.speech_detected = False
+
     def on_speech_detected(self):
-        self.rec_state_action.load(get_rel_path(ICON_PATH, "outline/microphone.svg"))
+        if not self.speech_detected:
+            self.speech_detected = True
+            self.rec_state_action.load(get_rel_path(ICON_PATH, "microphone.svg"))
 
     def on_speech_lost(self):
-        self.rec_state_action.load(get_rel_path(ICON_PATH, "outline/microphone-off.svg"))
+        if self.speech_detected:
+            self.speech_detected = False
+            self.rec_state_action.load(get_rel_path(ICON_PATH, "microphone-off.svg"))
 
     def stop_recording(self):
         self.start_action.setEnabled(True)
         self.stop_action.setEnabled(False)
-        self.rec_state_action.load(get_rel_path(ICON_PATH, "outline/microphone-off.svg"))
+        self.speech_detected = False
+        self.rec_state_action.load(get_rel_path(ICON_PATH, "microphone-off.svg"))
 
     def start_recording(self):
         self.start_action.setEnabled(False)

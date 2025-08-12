@@ -1,0 +1,16 @@
+faster-whisper
+hdbscan
+hf_xet
+numpy
+psutil
+py3nvml
+PyQt6
+PyQt6-sip
+resemblyzer
+scikit-learn
+scipy
+sounddevice
+soundfile
+sympy
+torch
+torchaudio

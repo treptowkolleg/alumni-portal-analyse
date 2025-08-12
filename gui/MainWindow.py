@@ -5,6 +5,7 @@ from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout
 
 from gui.MenuBar import MenuBar
+from gui.SimpleDataModel import SimpleTableModel
 from gui.SpeakerTableView import SpeakerTable
 from gui.StatusBar import StatusBar
 from gui.ToolBar import ToolBar
@@ -34,6 +35,8 @@ class MainWindow(QMainWindow):
         self.data_manager = TranscriptDataManager()
         self.transcript_table = TranscriptTable(self.data_manager)
         self.speaker_table = SpeakerTable(self.data_manager)
+
+        self.transcript_table.speakerChanged.connect(self.on_speaker_changed)
 
         self.toolbar = ToolBar("Aufnahmesteuerung")
 
@@ -67,6 +70,10 @@ class MainWindow(QMainWindow):
             self.menubar.settings_menu.addAction(whisper_action)
             if value == WHISPER_SPEAKER_RULE:
                 whisper_action.setChecked(True)
+
+    def on_speaker_changed(self, idn, new_speaker):
+        # Aktualisiere das Segment im DataManager
+        self.speaker_table.update_speaker_for_id(idn, new_speaker)
 
     def init_menu(self):
         self.setMenuBar(self.menubar)

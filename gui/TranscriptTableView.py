@@ -1,15 +1,38 @@
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QStandardItem
-from PyQt6.QtWidgets import QHeaderView
+from PyQt6.QtWidgets import QHeaderView, QAbstractItemView
 
+from gui.SpeakerDelegate import SpeakerDelegate
 from gui.TableView import TableView
 
 
 class TranscriptTable(TableView):
+    speakerChanged = pyqtSignal(int, str)
+
     def __init__(self, data_manager, parent=None):
         super(TranscriptTable, self).__init__(["Nr", "ID", "Sprecher", "Text", "Start", "Ende"], parent)
+        self.verticalHeader().setVisible(False)
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.data_manager = data_manager
         self.configure_column_widths()
+
+        self.setItemDelegateForColumn(2, SpeakerDelegate(self))
+        self.model.itemChanged.connect(self.on_item_changed)
+
+    def on_item_changed(self, item):
+        # Prüfe, ob sich der Sprecher geändert hat
+        col = item.column()
+        row = item.row()
+        if col == 2:  # Spalte "Sprecher"
+            id_item = self.model.item(row, 0)
+            if id_item:
+                try:
+                    idn = int(id_item.text())
+                    new_speaker = item.text()
+                    self.speakerChanged.emit(idn, new_speaker)
+                except ValueError:
+                    pass  # Ungültige ID
 
     def configure_column_widths(self):
         header = self.horizontalHeader()
