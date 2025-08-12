@@ -1,5 +1,3 @@
-import hashlib
-
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QStandardItem, QColor, QBrush
 from PyQt6.QtWidgets import QHeaderView, QAbstractItemView
@@ -95,7 +93,6 @@ class TranscriptTable(TableView):
 
         for seg in segments:
 
-
             id = QStandardItem(str(seg["idn"]))
             text_id = QStandardItem(str(seg["id"]))
             speaker = QStandardItem(str(seg["speaker"]))
@@ -109,7 +106,7 @@ class TranscriptTable(TableView):
             for item in [id, text_id, text, start, end]:
                 item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
 
-            self.model.appendRow([id, text_id, speaker,  text, start, end])
+            self.model.appendRow([id, text_id, speaker, text, start, end])
 
         self.configure_column_widths()
         self.update_colors()

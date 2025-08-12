@@ -1,8 +1,7 @@
+from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QStandardItem
 from PyQt6.QtWidgets import QHeaderView, QComboBox, QAbstractItemView
-from PyQt6.QtCore import Qt, pyqtSignal
 
-from gui.SpeakerDelegate import SpeakerDelegate
 from gui.SpeakerNameDelegate import SpeakerNameDelegate
 from gui.TableView import TableView
 
@@ -88,7 +87,6 @@ class SpeakerTable(TableView):
 
         # Signal senden
         self.speakerNameChanged.emit(old_speaker, new_speaker, affected_ids)
-
 
     def update_speaker_for_id(self, idn, new_speaker):
         """Aktualisiert den Sprecher für eine bestimmte ID direkt"""

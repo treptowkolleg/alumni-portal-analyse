@@ -5,7 +5,6 @@ from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout
 
 from gui.MenuBar import MenuBar
-from gui.SimpleDataModel import SimpleTableModel
 from gui.SpeakerTableView import SpeakerTable
 from gui.StatusBar import StatusBar
 from gui.ToolBar import ToolBar
@@ -66,7 +65,9 @@ class MainWindow(QMainWindow):
         self.menubar.settings_menu.addAction(whisper_header)
 
         for name, value in whisper_option.items():
-            whisper_action = CheckboxAction(text=name, action=partial(self.transcriber_worker.transcriber.set_preset, value), parent=self)
+            whisper_action = CheckboxAction(text=name,
+                                            action=partial(self.transcriber_worker.transcriber.set_preset, value),
+                                            parent=self)
             self.menubar.action_group_whisper.addAction(whisper_action)
             self.menubar.settings_menu.addAction(whisper_action)
             if value == WHISPER_SPEAKER_RULE:

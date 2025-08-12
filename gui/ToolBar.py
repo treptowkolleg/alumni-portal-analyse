@@ -21,7 +21,6 @@ class ToolBar(QToolBar):
         self.rec_state_action.setFixedSize(20, 20)
         self.rec_state_action.setStatusTip("Sprachaktivität")
 
-
         container = QWidget()
         layout = QHBoxLayout(container)
         layout.setContentsMargins(5, 5, 5, 5)  # links, oben, rechts, unten
