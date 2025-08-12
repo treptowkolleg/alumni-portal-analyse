@@ -37,6 +37,7 @@ class MainWindow(QMainWindow):
         self.speaker_table = SpeakerTable(self.data_manager)
 
         self.transcript_table.speakerChanged.connect(self.on_speaker_changed)
+        self.speaker_table.speakerNameChanged.connect(self.on_speaker_name_changed_in_speaker_table)
 
         self.toolbar = ToolBar("Aufnahmesteuerung")
 
@@ -74,6 +75,11 @@ class MainWindow(QMainWindow):
     def on_speaker_changed(self, idn, new_speaker):
         # Aktualisiere das Segment im DataManager
         self.speaker_table.update_speaker_for_id(idn, new_speaker)
+        print(f"DEBUG: {idn} -> {new_speaker}")
+
+    def on_speaker_name_changed_in_speaker_table(self, old_speaker, new_speaker, affected_ids):
+        # Aktualisiere TranscriptTable
+        self.transcript_table.update_speaker_for_ids(affected_ids, new_speaker)
 
     def init_menu(self):
         self.setMenuBar(self.menubar)
