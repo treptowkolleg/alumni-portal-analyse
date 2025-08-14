@@ -125,17 +125,18 @@ class MainWindow(QMainWindow):
                         background-color: #294a70;
                         color: white;
                     }
-                    QPushButton:hover {
-                        background-color: #2e5480;
-                    }
-                    QPushButton:pressed {
-                        background-color: #223f61;
-                    }
                 """)
         btn_save_speaker.setStatusTip("Sprecherprofile speichern")
 
         speaker_btn_layout = QHBoxLayout()
         speaker_btn_widget = QWidget()
+        speaker_btn_widget.setObjectName("Container")
+        speaker_btn_widget.setStyleSheet("""
+            QWidget#Container {
+            margin: 1px;
+            background-color: #5E5E5E;
+            }
+        """)
         speaker_btn_widget.setLayout(speaker_btn_layout)
         speaker_btn_layout.addWidget(btn_save_speaker)
         speaker_btn_layout.addStretch()
@@ -152,16 +153,10 @@ class MainWindow(QMainWindow):
                 background-color: #294a70;
                 color: white;
             }
-            QPushButton:hover {
-                background-color: #2e5480;
-            }
-            QPushButton:pressed {
-                background-color: #223f61;
-            }
         """)
         btn_summarize.setStatusTip("Transkription zusammenfassen")
 
-        btn_save_to_db = QPushButton("Speichern")
+        btn_save_to_db = QPushButton("Zusammenfassen und Speichern")
         btn_save_to_db.setIcon(svg_to_icon("database", 16))
         btn_save_to_db.setIconSize(QSize(16, 16))
         btn_save_to_db.setStatusTip("Zusammenfassung speichern")
@@ -170,9 +165,22 @@ class MainWindow(QMainWindow):
         btn_clear_table.setIcon(svg_to_icon("trash", 16))
         btn_clear_table.setIconSize(QSize(16, 16))
         btn_clear_table.setStatusTip("Transkripte löschen")
+        btn_clear_table.setStyleSheet("""
+                    QPushButton {
+                        background-color: #D10A00;
+                        color: white;
+                    }
+                """)
 
         button_layout = QHBoxLayout()
         button_widget = QWidget()
+        button_widget.setObjectName("Container2")
+        button_widget.setStyleSheet("""
+            QWidget#Container2 {
+            margin: 1px;
+            background-color: #5E5E5E;
+            }
+        """)
         button_widget.setLayout(button_layout)
         button_layout.addWidget(btn_summarize)
         button_layout.addWidget(btn_save_to_db)
