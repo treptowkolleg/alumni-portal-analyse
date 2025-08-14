@@ -1,8 +1,8 @@
 from functools import partial
 
-from PyQt6.QtCore import Qt, QThread, QTimer
+from PyQt6.QtCore import Qt, QThread, QTimer, QSize
 from PyQt6.QtGui import QIcon, QAction
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QButtonGroup
 
 from gui.MenuBar import MenuBar
 from gui.SpeakerTableView import SpeakerTable
@@ -13,7 +13,7 @@ from gui.TranscriptTableView import TranscriptTable
 from gui.widget.CheckboxAction import CheckboxAction
 from stt.SummaryWorker import SummaryWorker
 from tools.desktop import get_min_size, get_rel_path, ICON_PATH, WINDOW_TITLE, WINDOW_ICON, WINDOW_RATIO, \
-    WHISPER_SPEAKER_RULE
+    WHISPER_SPEAKER_RULE, svg_to_icon
 from vad.RecorderWorker import RecorderWorker
 from vad.TranscriberWorker import TranscriberWorker
 
@@ -116,11 +116,80 @@ class MainWindow(QMainWindow):
 
         # Fenster anzeigen
 
+        # Speaker-Table-Buttons:
+        btn_save_speaker = QPushButton("Profile speichern")
+        btn_save_speaker.setIcon(svg_to_icon("users", 16))
+        btn_save_speaker.setIconSize(QSize(16, 16))
+        btn_save_speaker.setStyleSheet("""
+                    QPushButton {
+                        background-color: #294a70;
+                        color: white;
+                    }
+                    QPushButton:hover {
+                        background-color: #2e5480;
+                    }
+                    QPushButton:pressed {
+                        background-color: #223f61;
+                    }
+                """)
+        btn_save_speaker.setStatusTip("Sprecherprofile speichern")
+
+        speaker_btn_layout = QHBoxLayout()
+        speaker_btn_widget = QWidget()
+        speaker_btn_widget.setLayout(speaker_btn_layout)
+        speaker_btn_layout.addWidget(btn_save_speaker)
+        speaker_btn_layout.addStretch()
+        speaker_btn_layout.setContentsMargins(5, 5, 5, 5)
+        speaker_btn_layout.setSpacing(5)
+
+
+        # Transcript-Table-Buttons:
+        btn_summarize = QPushButton("Zusammenfassen")
+        btn_summarize.setIcon(svg_to_icon("book-2",16))
+        btn_summarize.setIconSize(QSize(16, 16))
+        btn_summarize.setStyleSheet("""
+            QPushButton {
+                background-color: #294a70;
+                color: white;
+            }
+            QPushButton:hover {
+                background-color: #2e5480;
+            }
+            QPushButton:pressed {
+                background-color: #223f61;
+            }
+        """)
+        btn_summarize.setStatusTip("Transkription zusammenfassen")
+
+        btn_save_to_db = QPushButton("Speichern")
+        btn_save_to_db.setIcon(svg_to_icon("database", 16))
+        btn_save_to_db.setIconSize(QSize(16, 16))
+        btn_save_to_db.setStatusTip("Zusammenfassung speichern")
+
+        btn_clear_table = QPushButton("Transkript löschen")
+        btn_clear_table.setIcon(svg_to_icon("trash", 16))
+        btn_clear_table.setIconSize(QSize(16, 16))
+        btn_clear_table.setStatusTip("Transkripte löschen")
+
+        button_layout = QHBoxLayout()
+        button_widget = QWidget()
+        button_widget.setLayout(button_layout)
+        button_layout.addWidget(btn_summarize)
+        button_layout.addWidget(btn_save_to_db)
+        button_layout.addStretch()
+        button_layout.addWidget(btn_clear_table)
+        button_layout.setContentsMargins(5, 5, 5, 5)
+        button_layout.setSpacing(5)
+
         table_layout.addWidget(self.transcript_table)
+        table_layout.addWidget(button_widget)
         table_layout.setContentsMargins(0, 0, 0, 0)
+        table_layout.setSpacing(0)
 
         speaker_table_layout.addWidget(self.speaker_table)
+        speaker_table_layout.addWidget(speaker_btn_widget)
         speaker_table_layout.setContentsMargins(0, 0, 0, 0)
+        speaker_table_layout.setSpacing(0)
 
         main_layout.addWidget(speaker_table_widget, 3)
         main_layout.addWidget(table_widget, 8)

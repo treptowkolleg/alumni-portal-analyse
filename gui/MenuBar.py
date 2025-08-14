@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import QMenuBar, QMessageBox, QToolBar
 from gui.dialog.CustomDialog import CustomDialog
 from gui.widget.Action import Action
 from gui.widget.CheckboxAction import CheckboxAction
-from tools.desktop import WINDOW_TITLE, APP_VERSION, APP_DESCRIPTION, get_rel_path, ICON_PATH, MODELS
+from tools.desktop import WINDOW_TITLE, APP_VERSION, APP_DESCRIPTION, get_rel_path, ICON_PATH, MODELS, CURRENT_MODEL
 
 
 def action_training():
@@ -48,7 +48,7 @@ class MenuBar(QMenuBar):
             action = CheckboxAction(text=name, action=partial(print_action, model), parent=self)
             action_group.addAction(action)
             self.settings_menu.addAction(action)
-            if name == "Gemma":
+            if model == CURRENT_MODEL:
                 action.setChecked(True)
 
 

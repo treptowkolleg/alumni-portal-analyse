@@ -2,6 +2,9 @@ import os
 import sys
 
 import torch
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPixmap, QPainter, QIcon
+from PyQt6.QtSvg import QSvgRenderer
 
 from tools.lang import APP_TITLE
 
@@ -87,3 +90,13 @@ def get_rel_path(abs_path: str, file: str = None):
     if file is not None:
         path = os.path.join(path, file)
     return path
+
+def svg_to_icon(icon, size=24):
+    """Konvertiert eine SVG-Datei in einen QIcon"""
+    renderer = QSvgRenderer(get_rel_path(ICON_PATH, f"{icon}.svg"))
+    pixmap = QPixmap(size, size)
+    pixmap.fill(Qt.GlobalColor.transparent)  # Transparenter Hintergrund
+    painter = QPainter(pixmap)
+    renderer.render(painter)
+    painter.end()
+    return QIcon(pixmap)

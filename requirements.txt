@@ -2,6 +2,7 @@ faster-whisper
 hdbscan
 hf_xet
 numpy
+markdown
 psutil
 py3nvml
 PyQt6
