@@ -11,6 +11,7 @@ from gui.ToolBar import ToolBar
 from gui.TranscriptDataManager import TranscriptDataManager
 from gui.TranscriptTableView import TranscriptTable
 from gui.widget.CheckboxAction import CheckboxAction
+from stt.SummaryWorker import SummaryWorker
 from tools.desktop import get_min_size, get_rel_path, ICON_PATH, WINDOW_TITLE, WINDOW_ICON, WINDOW_RATIO, \
     WHISPER_SPEAKER_RULE
 from vad.RecorderWorker import RecorderWorker
@@ -25,6 +26,8 @@ class MainWindow(QMainWindow):
         self.transcriber_thread = None
         self.recorder_worker = None
         self.recorder_thread = None
+        self.llm_worker = None
+        self.llm_thread = None
 
         self.setWindowTitle(WINDOW_TITLE)
         self.setWindowIcon(QIcon(get_rel_path(ICON_PATH, WINDOW_ICON)))
@@ -48,6 +51,7 @@ class MainWindow(QMainWindow):
         self.add_layout()
         self.setup_recorder()
         self.setup_transcriber()
+        self.setup_llm()
 
         self.toolbar.start_action.triggered.connect(self.start_recording)
         self.toolbar.stop_action.triggered.connect(self.stop_recording)
@@ -59,7 +63,7 @@ class MainWindow(QMainWindow):
         }
 
         self.menubar.settings_menu.addSeparator()
-        whisper_header = QAction(QIcon(get_rel_path(ICON_PATH, "outline/ai.svg")), "Ermittlung der Sprecher",
+        whisper_header = QAction(QIcon(get_rel_path(ICON_PATH, "activity-heartbeat.svg")), "Ermittlung der Sprecher",
                                  self.menubar.settings_menu)
         whisper_header.setEnabled(False)
         self.menubar.settings_menu.addAction(whisper_header)
@@ -159,6 +163,19 @@ class MainWindow(QMainWindow):
 
         self.transcriber_thread.start()
 
+    def setup_llm(self):
+        self.llm_thread = QThread()
+        self.llm_worker = SummaryWorker()
+
+        self.llm_worker.moveToThread(self.llm_thread)
+
+        # Signale verbinden
+        self.llm_thread.started.connect(self.llm_worker.run_forever)
+        self.llm_worker.status_update.connect(self.update_llm_status)
+        self.llm_worker.error_occurred.connect(self.handle_recorder_error)
+
+        self.llm_thread.start()
+
     def on_speech_detected(self):
         if self.recorder_worker.is_recording_active is True:
             self.toolbar.on_speech_detected()
@@ -190,8 +207,11 @@ class MainWindow(QMainWindow):
     def update_recorder_status(self, status):
         print(f"Recorder-Status: {status}")
 
+    def update_llm_status(self, status):
+        print(f"LLM-Status: {status}")
+
     def update_transcriber_status(self, status):
-        pass
+        print(f"Transcriber-Status: {status}")
 
     def show_transcription_progress(self, show=True):
         """Zeige/Verstecke Fortschrittsanzeige"""
@@ -247,6 +267,12 @@ class MainWindow(QMainWindow):
         except:
             pass
 
+        try:
+            if self.llm_worker:
+                self.llm_worker.stop_worker()
+        except:
+            pass
+
         # Threads beenden (mit Timeout)
         try:
             if self.recorder_thread:
@@ -262,6 +288,13 @@ class MainWindow(QMainWindow):
         except:
             pass
 
+        try:
+            if self.llm_thread:
+                self.llm_thread.quit()
+                self.llm_thread.wait(1000)
+        except:
+            pass
+
         print("Aufräumen abgeschlossen")
         event.accept()
 
@@ -270,6 +303,11 @@ class MainWindow(QMainWindow):
         self.recorder_worker.stop_worker()
         self.recorder_thread.quit()
         self.recorder_thread.wait()
+
         self.transcriber_worker.stop_worker()
         self.transcriber_thread.quit()
         self.transcriber_thread.wait()
+
+        self.llm_worker.stop_worker()
+        self.llm_thread.quit()
+        self.llm_thread.wait()

@@ -8,7 +8,7 @@ class Action(QAction):
         super().__init__(parent)
 
         if icon is not None:
-            self.setIcon(QIcon(get_rel_path(ICON_PATH, f"outline/{icon}.svg")))
+            self.setIcon(QIcon(get_rel_path(ICON_PATH, f"{icon}.svg")))
 
         if text is not None:
             self.setText(text)

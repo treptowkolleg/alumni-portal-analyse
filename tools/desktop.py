@@ -65,6 +65,8 @@ MODELS = {
     "Qwen": "qwen3:8b",
 }
 
+CURRENT_MODEL = MODELS["Gemma"]
+
 
 def get_min_size(ratio: str = "16:9"):
     """

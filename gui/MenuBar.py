@@ -31,7 +31,7 @@ class MenuBar(QMenuBar):
         self.tools_menu = self.addMenu("Tools")
         help_menu = self.addMenu("Hilfe")
 
-        exit_action = QAction(QIcon(get_rel_path(ICON_PATH, "outline/power.svg")), "Beenden", self)
+        exit_action = QAction(QIcon(get_rel_path(ICON_PATH, "power.svg")), "Beenden", self)
         exit_action.triggered.connect(parent.close)
         file_menu.addAction(exit_action)
 
@@ -39,10 +39,11 @@ class MenuBar(QMenuBar):
         action_group.setExclusive(True)
 
         self.settings_menu.addSeparator()
-        header = QAction(QIcon(get_rel_path(ICON_PATH, "outline/ai.svg")), "LLM", self.settings_menu)
+        header = QAction(QIcon(get_rel_path(ICON_PATH, "ai.svg")), "LLM", self.settings_menu)
         header.setEnabled(False)
         self.settings_menu.addAction(header)
 
+        # TODO: In MainWindow verschieben und mit LLM-Worker verknüpfen
         for name, model in MODELS.items():
             action = CheckboxAction(text=name, action=partial(print_action, model), parent=self)
             action_group.addAction(action)
@@ -55,7 +56,7 @@ class MenuBar(QMenuBar):
         self.action_group_whisper.setExclusive(True)
 
         self.settings_menu.addSeparator()
-        header = QAction(QIcon(get_rel_path(ICON_PATH, "outline/settings.svg")), "Spezialfunktionen",
+        header = QAction(QIcon(get_rel_path(ICON_PATH, "settings.svg")), "Spezialfunktionen",
                          self.settings_menu)
         header.setEnabled(False)
         self.settings_menu.addAction(header)
@@ -66,11 +67,11 @@ class MenuBar(QMenuBar):
         self.tools_menu.addAction(training_action)
 
         self.view_menu.addSeparator()
-        header = QAction(QIcon(get_rel_path(ICON_PATH, "outline/tools.svg")), "Werkzeugleisten", self.view_menu)
+        header = QAction(QIcon(get_rel_path(ICON_PATH, "tools.svg")), "Werkzeugleisten", self.view_menu)
         header.setEnabled(False)
         self.view_menu.addAction(header)
 
-        about_action = QAction(QIcon(get_rel_path(ICON_PATH, "outline/question-mark.svg")), "Über", self)
+        about_action = QAction(QIcon(get_rel_path(ICON_PATH, "question-mark.svg")), "Über", self)
         about_action.triggered.connect(self.show_about_dialog)
         help_menu.addAction(about_action)
 
