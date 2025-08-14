@@ -55,6 +55,7 @@ class SpeakerTable(TableView):
                         # Aktualisiere Cache und sende Signal
                         self.update_table([])
                         self.speakerNameChanged.emit(old_speaker, new_speaker, affected_ids)
+        self.configure_column_widths()
 
     def find_old_speaker_for_ids(self, ids):
         """Finde den alten Sprecher-Namen für gegebene IDs"""

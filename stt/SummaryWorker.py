@@ -88,6 +88,7 @@ class SummaryWorker(QObject):
 
         if not transcript:
             self.error_occurred.emit("Kein Text zum Zusammenfassen vorhanden")
+            self.task_completed.emit()
             return
 
         try:
@@ -95,7 +96,7 @@ class SummaryWorker(QObject):
 
 
             # TODO: Eigentliche Zusammenfassung durchführen
-            result = None
+            result = self.llm.process_transcript(transcript)
 
             # Ergebnis senden
             self.summary_ready.emit(result)
@@ -104,4 +105,5 @@ class SummaryWorker(QObject):
 
         except Exception as e:
             error_msg = f"LLM-Fehler (Task: {task_id}): {str(e)}"
+            self.task_completed.emit()
             self.error_occurred.emit(error_msg)

@@ -1,3 +1,4 @@
+requests
 faster-whisper
 hdbscan
 hf_xet

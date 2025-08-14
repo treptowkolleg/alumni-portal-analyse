@@ -159,16 +159,13 @@ class TranscriptTable(TableView):
 
         # Definiere eine Liste von schönen Farben
         color_palette = [
-            QColor(60, 20, 20),  # Dunkelrot
-            QColor(20, 60, 20),  # Dunkelgrün
-            QColor(20, 20, 60),  # Dunkelblau
-            QColor(60, 60, 20),  # Dunkelgelb/Oliv
-            QColor(60, 20, 60),  # Dunkelmagenta
-            QColor(20, 60, 60),  # Dunkelcyan
-            QColor(60, 40, 20),  # Dunkelorange/Braun
-            QColor(40, 20, 60),  # Dunkelviolett
-            QColor(50, 50, 50),  # Dunkelgrau
-            QColor(20, 40, 60),  # Dunkelblaugrün
+            QColor(52, 199, 89, 90),
+            QColor(88, 86, 214, 90),
+            QColor(255, 149, 0, 90),
+            QColor(255, 45, 85, 90),
+            QColor(175, 82, 222, 90),
+            QColor(255, 59, 48, 90),
+            QColor(90, 200, 250, 90),
         ]
 
         for i, speaker in enumerate(speakers):

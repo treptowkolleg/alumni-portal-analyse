@@ -22,6 +22,8 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.btn_summarize = QPushButton("Zusammenfassen")
+        self.btn_summarize.clicked.connect(self.summarize)
         self.transcriber_worker = None
         self.transcriber_thread = None
         self.recorder_worker = None
@@ -77,6 +79,20 @@ class MainWindow(QMainWindow):
             if value == WHISPER_SPEAKER_RULE:
                 whisper_action.setChecked(True)
 
+    def summarize(self):
+        segments = []
+        for row in range(self.transcript_table.model.rowCount()):
+            speaker = self.transcript_table.model.item(row, 2)
+            text = self.transcript_table.model.item(row, 3)
+            segments.append(f"[{speaker.text().strip()}]: {text.text().strip()}")
+        self.llm_worker.add_transcription_task(segments)
+        self.btn_summarize.setDisabled(True)
+        self.btn_summarize.setText("Bitte warten...")
+
+    def on_summary_ready(self):
+        self.btn_summarize.setDisabled(False)
+        self.btn_summarize.setText("Zusammenfassen")
+
     def on_speaker_changed(self, idn, new_speaker):
         # Aktualisiere das Segment im DataManager
         self.speaker_table.update_speaker_for_id(idn, new_speaker)
@@ -123,7 +139,6 @@ class MainWindow(QMainWindow):
         btn_save_speaker.setStyleSheet("""
                     QPushButton {
                         background-color: #294a70;
-                        color: white;
                     }
                 """)
         btn_save_speaker.setStatusTip("Sprecherprofile speichern")
@@ -145,21 +160,20 @@ class MainWindow(QMainWindow):
 
 
         # Transcript-Table-Buttons:
-        btn_summarize = QPushButton("Zusammenfassen")
-        btn_summarize.setIcon(svg_to_icon("book-2",16))
-        btn_summarize.setIconSize(QSize(16, 16))
-        btn_summarize.setStyleSheet("""
+        self.btn_summarize.setIcon(svg_to_icon("book-2",16))
+        self.btn_summarize.setIconSize(QSize(16, 16))
+        self.btn_summarize.setStyleSheet("""
             QPushButton {
                 background-color: #294a70;
-                color: white;
             }
         """)
-        btn_summarize.setStatusTip("Transkription zusammenfassen")
+        self.btn_summarize.setStatusTip("Transkription zusammenfassen")
 
         btn_save_to_db = QPushButton("Zusammenfassen und Speichern")
         btn_save_to_db.setIcon(svg_to_icon("database", 16))
         btn_save_to_db.setIconSize(QSize(16, 16))
         btn_save_to_db.setStatusTip("Zusammenfassung speichern")
+        btn_save_to_db.setDisabled(True)
 
         btn_clear_table = QPushButton("Transkript löschen")
         btn_clear_table.setIcon(svg_to_icon("trash", 16))
@@ -168,7 +182,6 @@ class MainWindow(QMainWindow):
         btn_clear_table.setStyleSheet("""
                     QPushButton {
                         background-color: #D10A00;
-                        color: white;
                     }
                 """)
 
@@ -182,7 +195,7 @@ class MainWindow(QMainWindow):
             }
         """)
         button_widget.setLayout(button_layout)
-        button_layout.addWidget(btn_summarize)
+        button_layout.addWidget(self.btn_summarize)
         button_layout.addWidget(btn_save_to_db)
         button_layout.addStretch()
         button_layout.addWidget(btn_clear_table)
@@ -250,6 +263,7 @@ class MainWindow(QMainWindow):
         self.llm_thread.started.connect(self.llm_worker.run_forever)
         self.llm_worker.status_update.connect(self.update_llm_status)
         self.llm_worker.error_occurred.connect(self.handle_recorder_error)
+        self.llm_worker.task_completed.connect(self.on_summary_ready)
 
         self.llm_thread.start()
 
