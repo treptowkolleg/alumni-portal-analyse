@@ -14,6 +14,7 @@ class RecorderWorker(QObject):
     recording_done = pyqtSignal(list)
     status_update = pyqtSignal(str)  # Für Statusmeldungen
     error_occurred = pyqtSignal(str)  # Für Fehler
+    silence = pyqtSignal(int)
 
     def __init__(self):
         super().__init__()
@@ -104,6 +105,7 @@ class RecorderWorker(QObject):
                 self.vad.recording.clear()
             self.vad.is_recording = False
             self.status_update.emit("Kontinuierliche Aufnahme gestoppt")
+            self.silence.emit(0)
 
     def _monitor_vad(self):
         """Überwache VAD kontinuierlich"""
@@ -126,8 +128,13 @@ class RecorderWorker(QObject):
                 # Sende Sprach-Erkennungs-Signale
                 if self.vad.is_recording:
                     self.speech_detected.emit()
+                    self.silence.emit(0)
                 else:
                     self.speech_lost.emit()
+                    if self.vad.recording:
+                        self.silence.emit(self.vad.silence_samples)
+                    else:
+                        self.silence.emit(0)
 
         except Exception as e:
             self.error_occurred.emit(f"Fehler bei VAD-Überwachung: {str(e)}")

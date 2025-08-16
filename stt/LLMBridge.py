@@ -27,6 +27,7 @@ class LLMBridge:
             - Benenne die Sprecher bei der Wiedergabe ihrer Aussagen oder Handlungen (z. B. „Max Mustermann erläuterte..“, „Anna Schneider kündigte an...“).
             - Strukturiere logisch: Teilnehmer, Kontext, Diskussionspunkte, Entscheidungen, Aufgaben, Termine, offene Punkte.
             - Gib die Ausgabe rein als Markdown-Text aus – ohne Code-Wrapper, ohne Backticks, ohne „```markdown“.
+            - Gib keinen Titel an.
             
             Transkript:
             {transcript}
@@ -66,8 +67,6 @@ class LLMBridge:
             # Entferne das gesamte <think>...</think>-Tag aus dem summary
             title = re.sub(r"<think>.*?</think>", "", title, flags=re.DOTALL).strip()
 
-            print(title)
-            print(summary)
             return {
                 "title": title,
                 "title_tink": title_think,

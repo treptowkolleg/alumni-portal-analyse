@@ -24,6 +24,8 @@ class SpeakerTable(TableView):
         self.setItemDelegateForColumn(1, SpeakerNameDelegate(self))
         self.model.itemChanged.connect(self.on_speaker_name_changed)
 
+        self.setColumnHidden(0, True)
+
         self.setStyleSheet("""
                             QTableView::item:selected {
                                 background-color: rgba(255, 255, 255, 15%);
@@ -108,7 +110,7 @@ class SpeakerTable(TableView):
         header.setStretchLastSection(False)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
 
-        self.resizeColumnsToContents()
+        #self.resizeColumnsToContents()
 
         if self.columnWidth(0) < 100:
             self.setColumnWidth(0, 100)
@@ -133,6 +135,12 @@ class SpeakerTable(TableView):
 
         # Konvertiere zurück zu Liste
         return list(cache_dict.values())
+
+    def remove_all_rows(self):
+        self.model.removeRows(0, self.model.rowCount())
+
+    def remove_row(self, row):
+        self.model.removeRow(row)
 
     def update_table(self, segments):
         self.model.removeRows(0, self.model.rowCount())

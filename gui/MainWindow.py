@@ -2,9 +2,10 @@ from functools import partial
 
 from PyQt6.QtCore import Qt, QThread, QTimer, QSize
 from PyQt6.QtGui import QIcon, QAction
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QButtonGroup
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QButtonGroup, QLabel
 
 from gui.MenuBar import MenuBar
+from gui.SecondaryWindow import SecondaryWindow
 from gui.SpeakerTableView import SpeakerTable
 from gui.StatusBar import StatusBar
 from gui.ToolBar import ToolBar
@@ -12,6 +13,7 @@ from gui.TranscriptDataManager import TranscriptDataManager
 from gui.TranscriptTableView import TranscriptTable
 from gui.widget.CheckboxAction import CheckboxAction
 from stt.SummaryWorker import SummaryWorker
+from tools.demo import TRANSCRIPT_DATA
 from tools.desktop import get_min_size, get_rel_path, ICON_PATH, WINDOW_TITLE, WINDOW_ICON, WINDOW_RATIO, \
     WHISPER_SPEAKER_RULE, svg_to_icon
 from vad.RecorderWorker import RecorderWorker
@@ -30,6 +32,10 @@ class MainWindow(QMainWindow):
         self.recorder_thread = None
         self.llm_worker = None
         self.llm_thread = None
+
+        self.summary_window = SecondaryWindow(self)
+
+        self.summary_window.window_closed.connect(self.hide_summary_window)
 
         self.setWindowTitle(WINDOW_TITLE)
         self.setWindowIcon(QIcon(get_rel_path(ICON_PATH, WINDOW_ICON)))
@@ -57,6 +63,7 @@ class MainWindow(QMainWindow):
 
         self.toolbar.start_action.triggered.connect(self.start_recording)
         self.toolbar.stop_action.triggered.connect(self.stop_recording)
+
 
         whisper_option: dict[str, str] = {
             "streng": "conservative",
@@ -92,6 +99,10 @@ class MainWindow(QMainWindow):
     def on_summary_ready(self):
         self.btn_summarize.setDisabled(False)
         self.btn_summarize.setText("Zusammenfassen")
+        self.show_summary_window()
+
+    def output_summary(self, result):
+        self.summary_window.update_from_markdown(result)
 
     def on_speaker_changed(self, idn, new_speaker):
         # Aktualisiere das Segment im DataManager
@@ -102,8 +113,25 @@ class MainWindow(QMainWindow):
         # Aktualisiere TranscriptTable
         self.transcript_table.update_speaker_for_ids(affected_ids, new_speaker)
 
+    def on_toggle_summary_window(self):
+        if self.summary_window.isVisible():
+            self.hide_summary_window()
+        else:
+            self.show_summary_window()
+
+    def show_summary_window(self):
+        self.summary_window.show()
+        self.summary_window.raise_()
+        self.menubar.summary_window_action.setChecked(True)
+
+    def hide_summary_window(self):
+        self.summary_window.hide()
+        self.menubar.summary_window_action.setChecked(False)
+
     def init_menu(self):
         self.setMenuBar(self.menubar)
+        self.menubar.load_demo.connect(self.on_load_demo_data)
+        self.menubar.new_project.connect(self.clear_table_data)
 
     def init_status_bar(self):
         self.setStatusBar(StatusBar(self))
@@ -111,6 +139,7 @@ class MainWindow(QMainWindow):
     def init_toolbar(self):
         self.addToolBar(Qt.ToolBarArea.BottomToolBarArea, self.toolbar)
         self.menubar.add_toolbar(self.toolbar)
+        self.menubar.toggle_summary_window.connect(self.on_toggle_summary_window)
 
     def add_layout(self):
         central_widget = QWidget()
@@ -179,6 +208,7 @@ class MainWindow(QMainWindow):
         btn_clear_table.setIcon(svg_to_icon("trash", 16))
         btn_clear_table.setIconSize(QSize(16, 16))
         btn_clear_table.setStatusTip("Transkripte löschen")
+        btn_clear_table.clicked.connect(self.clear_table_data)
         btn_clear_table.setStyleSheet("""
                     QPushButton {
                         background-color: #D10A00;
@@ -236,6 +266,8 @@ class MainWindow(QMainWindow):
 
         self.recorder_thread.start()
 
+        self.recorder_worker.silence.connect(self.toolbar.update_timeout)
+
     def setup_transcriber(self):
         self.transcriber_thread = QThread()
         self.transcriber_worker = TranscriberWorker()
@@ -264,6 +296,7 @@ class MainWindow(QMainWindow):
         self.llm_worker.status_update.connect(self.update_llm_status)
         self.llm_worker.error_occurred.connect(self.handle_recorder_error)
         self.llm_worker.task_completed.connect(self.on_summary_ready)
+        self.llm_worker.summary_ready.connect(self.output_summary)
 
         self.llm_thread.start()
 
@@ -280,6 +313,16 @@ class MainWindow(QMainWindow):
         """Wird aufgerufen, wenn eine Aufnahme fertig ist"""
         # Füge Transkriptionsaufgabe hinzu
         self.transcriber_worker.add_transcription_task(recording)
+
+    def on_load_demo_data(self):
+        self.clear_table_data()
+        self.on_transcription_ready(TRANSCRIPT_DATA)
+        self.transcriber_worker.transcriber.id_count = len(TRANSCRIPT_DATA) + 1
+
+    def clear_table_data(self):
+        self.transcript_table.remove_all_rows()
+        self.speaker_table.remove_all_rows()
+        self.transcriber_worker.transcriber.id_count = 0
 
     def on_transcription_ready(self, result):
         """Wird aufgerufen, wenn Transkription fertig ist"""
@@ -334,6 +377,7 @@ class MainWindow(QMainWindow):
         """Stoppe Aufnahme"""
         self.recorder_worker.stop_recording()
         self.toolbar.stop_recording()
+        self.toolbar.reset_timeout()
 
     def closeEvent(self, event):
         """Wird aufgerufen, wenn das Fenster geschlossen wird"""

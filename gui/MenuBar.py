@@ -1,5 +1,6 @@
 from functools import partial
 
+from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QAction, QIcon, QActionGroup, QKeySequence
 from PyQt6.QtWidgets import QMenuBar, QMessageBox, QToolBar
 
@@ -18,8 +19,12 @@ def print_action(text):
 
 
 class MenuBar(QMenuBar):
+    new_project = pyqtSignal()
+    load_demo = pyqtSignal()
+    toggle_summary_window = pyqtSignal()
 
     def __init__(self, parent=None):
+
         super(MenuBar, self).__init__(parent)
 
         self.dialog = CustomDialog(self.window())
@@ -36,7 +41,10 @@ class MenuBar(QMenuBar):
         exit_action.setShortcut(QKeySequence.StandardKey.Close)
         self.btn_new_project = QAction(QIcon(get_rel_path(ICON_PATH, "file-plus.svg")), "Neues Projekt", self)
         self.btn_new_project.setShortcut(QKeySequence.StandardKey.New)
+        self.btn_new_project.triggered.connect(self.new_project.emit)
+
         self.btn_demo_data = QAction(QIcon(get_rel_path(ICON_PATH, "test-pipe.svg")), "Demonstration laden", self)
+        self.btn_demo_data.triggered.connect(self.load_demo.emit)
 
         file_menu.addAction(self.btn_new_project)
         file_menu.addAction(self.btn_demo_data)
@@ -74,6 +82,16 @@ class MenuBar(QMenuBar):
         training_action.triggered.connect(self.show_training_dialog)
         training_action.setShortcut("F8")
         self.tools_menu.addAction(training_action)
+
+        windows_header = QAction(QIcon(get_rel_path(ICON_PATH, "app-window.svg")), "Fenster", self.view_menu)
+        windows_header.setEnabled(False)
+        self.view_menu.addAction(windows_header)
+
+        self.summary_window_action = CheckboxAction(None, "Zusammenfassung", parent=self)
+        self.summary_window_action.triggered.connect(self.toggle_summary_window.emit)
+        self.summary_window_action.setShortcut("F5")
+        self.view_menu.addAction(self.summary_window_action)
+
 
         self.view_menu.addSeparator()
         header = QAction(QIcon(get_rel_path(ICON_PATH, "tools.svg")), "Werkzeugleisten", self.view_menu)

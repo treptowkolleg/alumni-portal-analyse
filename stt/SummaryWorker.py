@@ -8,7 +8,7 @@ from tools.desktop import CURRENT_MODEL
 
 
 class SummaryWorker(QObject):
-    summary_ready = pyqtSignal(list)
+    summary_ready = pyqtSignal(dict)
     status_update = pyqtSignal(str)
     error_occurred = pyqtSignal(str)
     task_completed = pyqtSignal()

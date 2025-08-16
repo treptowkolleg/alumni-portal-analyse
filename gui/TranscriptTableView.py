@@ -20,6 +20,11 @@ class TranscriptTable(TableView):
         self.setItemDelegateForColumn(2, SpeakerDelegate(self))
         self.model.itemChanged.connect(self.on_item_changed)
 
+        self.setColumnHidden(1, True)
+        self.setAutoScroll(True)
+
+        #self.setGridStyle(Qt.PenStyle.SolidLine)
+
         self.setStyleSheet("""
                     QTableView::item:selected {
                         background-color: rgba(255, 255, 255, 15%);
@@ -87,6 +92,12 @@ class TranscriptTable(TableView):
         if self.columnWidth(5) < 60:
             self.setColumnWidth(5, 60)
 
+    def remove_all_rows(self):
+        self.model.removeRows(0, self.model.rowCount())
+
+    def remove_row(self, row):
+        self.model.removeRow(row)
+
     def update_transcript_table(self, segments):
 
         self.speaker_colors = self.generate_speaker_colors(segments)
@@ -110,6 +121,7 @@ class TranscriptTable(TableView):
 
         self.configure_column_widths()
         self.update_colors()
+        self.scrollToBottom()
 
     def update_colors(self):
         """Aktualisiere alle Farben basierend auf aktuellen Sprechern"""
