@@ -1,8 +1,7 @@
 import markdown
 from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWebEngineWidgets import QWebEngineView
-from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QTextEdit
+from PyQt6.QtWidgets import QMainWindow, QTextEdit
 
 from tools.desktop import get_rel_path, ICON_PATH, WINDOW_ICON
 

@@ -267,6 +267,7 @@ class MainWindow(QMainWindow):
         self.recorder_thread.start()
 
         self.recorder_worker.silence.connect(self.toolbar.update_timeout)
+        self.recorder_worker.volume.connect(self.toolbar.update_volume)
 
     def setup_transcriber(self):
         self.transcriber_thread = QThread()
@@ -308,11 +309,13 @@ class MainWindow(QMainWindow):
 
     def on_speech_lost(self):
         self.toolbar.on_speech_lost()
+        self.toolbar.update_volume(0)
 
     def on_recording_done(self, recording):
         """Wird aufgerufen, wenn eine Aufnahme fertig ist"""
         # Füge Transkriptionsaufgabe hinzu
         self.transcriber_worker.add_transcription_task(recording)
+        self.toolbar.update_volume(0)
 
     def on_load_demo_data(self):
         self.clear_table_data()
@@ -378,6 +381,7 @@ class MainWindow(QMainWindow):
         self.recorder_worker.stop_recording()
         self.toolbar.stop_recording()
         self.toolbar.reset_timeout()
+        self.toolbar.update_volume(0)
 
     def closeEvent(self, event):
         """Wird aufgerufen, wenn das Fenster geschlossen wird"""

@@ -1,7 +1,6 @@
 import json
 import numpy as np
 from datetime import datetime
-import sqlite3
 
 
 def add_embedding_for_speaker(conn, speaker_id: int, new_embedding: np.ndarray, max_embeddings: int = 100):

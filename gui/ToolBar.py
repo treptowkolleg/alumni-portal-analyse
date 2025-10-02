@@ -1,3 +1,6 @@
+import math
+
+from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtSvgWidgets import QSvgWidget
 from PyQt6.QtWidgets import QToolBar, QWidget, QHBoxLayout, QProgressBar, QLabel, QVBoxLayout
@@ -9,6 +12,9 @@ from vad.VoiceActivityDetector import MAX_SILENCE_SAMPLES
 class ToolBar(QToolBar):
 
     def __init__(self, parent=None):
+        self.target_value = 0
+        self.current_value = 0
+
         super(ToolBar, self).__init__(parent)
 
         self.start_action = QAction(QIcon(get_rel_path(ICON_PATH, "player-record.svg")), None, self)
@@ -40,6 +46,9 @@ class ToolBar(QToolBar):
         self.addSeparator()
         self.addAction(self.start_action)
         self.addAction(self.stop_action)
+
+        self.addSeparator()
+
         self.time_out_bar = QProgressBar(self)
         self.time_out_bar.setRange(0, MAX_SILENCE_SAMPLES)
         self.time_out_bar.setValue(MAX_SILENCE_SAMPLES)
@@ -64,7 +73,45 @@ class ToolBar(QToolBar):
         }      
         """)
 
+        self.volume_bar = QProgressBar(self)
+        self.volume_bar.setRange(0, 100)
+        self.volume_bar.setValue(0)
+        self.volume_bar.setTextVisible(False)
+        self.volume_bar.setStatusTip("Lautstärke")
 
+        self.volume_bar.setStyleSheet("""
+                QProgressBar 
+                {
+                    background-color: rgba(52,122,89,120);
+                    border-radius: 2px;
+                    height: 8px;
+                    border: none;
+                }
+                QProgressBar::chunk 
+                {
+                    
+                    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                        stop: 0 #7DCEA0, stop: 1 #27AE60);
+    
+                    transition: width 0.2s ease-in-out; 
+                    border-radius: 2px;
+                    border: none;
+                    padding: 2px;
+                    margin: 4px;
+                }      
+                """)
+
+        volume_container = QWidget()
+        volume_container.setMinimumWidth(100)
+        volume_container.setMaximumWidth(300)
+        volume_container_layout = QVBoxLayout(volume_container)
+        volume_container_layout.setContentsMargins(5, 5, 0, 5)
+        volume_container_layout.setSpacing(5)
+        volume_container_layout.addWidget(QLabel("Lautstärke"))
+        volume_container_layout.addWidget(self.volume_bar)
+        self.addWidget(volume_container)
+
+        self.addSeparator()
 
         time_out_container = QWidget()
         container_layout = QVBoxLayout(time_out_container)
@@ -73,7 +120,10 @@ class ToolBar(QToolBar):
         container_layout.addWidget(QLabel("Transkription Timeout"))
         container_layout.addWidget(self.time_out_bar)
         self.addWidget(time_out_container)
+
         self.addSeparator()
+
+
 
         self.speech_detected = False
 
@@ -139,11 +189,34 @@ class ToolBar(QToolBar):
                 }
                 """)
 
+        self.animation_timer = QTimer()
+        self.animation_timer.timeout.connect(self.animate_volume)
+        self.animation_timer.start(30)
+
     def update_timeout(self, samples):
-        if samples <= MAX_SILENCE_SAMPLES:
-            self.time_out_bar.setValue(MAX_SILENCE_SAMPLES - samples)
+            if samples <= MAX_SILENCE_SAMPLES:
+                self.time_out_bar.setValue(MAX_SILENCE_SAMPLES - samples)
+            else:
+                self.reset_timeout()
+
+    def animate_volume(self):
+        """Flüssige Animation zum Zielwert"""
+        if abs(self.target_value - self.current_value) > 1:
+            # Langsame Annäherung (wie CSS transition)
+            self.current_value += (self.target_value - self.current_value) * .1
+            cur_val = int(self.current_value)
+            if cur_val > 0:
+                self.volume_bar.setValue(cur_val)
+            else:
+                self.volume_bar.setValue(0)
+
+    def update_volume(self, rms):
+        if rms > 0:
+            volume_db = 20 * math.log10(rms)
+            volume_percent = max(0, min(100, int((volume_db + 60) * 1.67)))
         else:
-            self.reset_timeout()
+            volume_percent = 0
+        self.target_value = volume_percent
 
     def reset_timeout(self):
         self.time_out_bar.setValue(MAX_SILENCE_SAMPLES)

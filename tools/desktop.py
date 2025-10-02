@@ -36,7 +36,7 @@ os.makedirs(AUDIO_PATH, exist_ok=True)
 os.makedirs(IMAGE_PATH, exist_ok=True)
 os.makedirs(ICON_PATH, exist_ok=True)
 
-WHISPER_MODEL_SIZE = "medium"
+WHISPER_MODEL_SIZE = "large"
 WHISPER_SPEAKER_RULE = "liberal"
 
 CPU_USAGE_UPDATE_RATE = 1000
@@ -62,13 +62,18 @@ LL-Modelle
 MODELS = {
     "NeuralBeagle": "eas/neuralbeagle14",
     "Gemma": "gemma3n:e4b",
+    "Gemma-2B": "gemma3n:e2b",
+    "Gemma-2B-Instruct": "gemma:2b-instruct",
     "Open Hermes": "openhermes",
     "LLama": "llama3.1",
+    "LLama:8B": "llama3:8b-instruct-q5_K_M",
     "Deepseek": "deepseek-r1:8b",
     "Qwen": "qwen3:8b",
+    "Phi-Mini": "phi3:mini",
+    "OpenLLM Deutsch": "jobautomation/OpenEuroLLM-German",
 }
 
-CURRENT_MODEL = MODELS["Gemma"]
+CURRENT_MODEL = MODELS["Gemma-2B"]
 
 
 def get_min_size(ratio: str = "16:9"):

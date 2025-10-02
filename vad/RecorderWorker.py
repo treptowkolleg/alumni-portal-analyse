@@ -15,6 +15,7 @@ class RecorderWorker(QObject):
     status_update = pyqtSignal(str)  # Für Statusmeldungen
     error_occurred = pyqtSignal(str)  # Für Fehler
     silence = pyqtSignal(int)
+    volume = pyqtSignal(float)
 
     def __init__(self):
         super().__init__()
@@ -114,6 +115,7 @@ class RecorderWorker(QObject):
             sd.sleep(100)
 
             if self.vad:
+                self.volume.emit(self.vad.current_volume)
                 # Prüfe auf Stille (Ende der Spracherkennung)
                 if self.vad.silence_samples >= MAX_SILENCE_SAMPLES:
                     if self.vad.recording:

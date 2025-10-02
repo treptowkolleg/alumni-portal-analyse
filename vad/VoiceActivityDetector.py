@@ -30,6 +30,16 @@ class VoiceActivityDetector:
         self.is_recording = False
         self.post_speech_countdown = 0
         self.silence_samples = 0
+        self.current_volume = 0.0
+
+    def get_volume(self, audio_data):
+        """Berechne die aktuelle Lautstärke (RMS)"""
+        if len(audio_data) == 0:
+            return 0.0
+
+        # RMS (Root Mean Square) für Lautstärke
+        rms = np.max(np.abs(audio_data))
+        return float(rms)
 
     def simple_vad(self, audio_np):
         audio_tensor = torch.from_numpy(audio_np).float().unsqueeze(0)
@@ -38,6 +48,9 @@ class VoiceActivityDetector:
     def audio_callback(self, indata, frames, time, status):
         audio = indata[:, 0]
         PRE_BUFFER.extend(audio)
+
+        # Lautstärke berechnen
+        self.current_volume = self.get_volume(audio)
 
         speech_prob = self.simple_vad(audio)
 
@@ -56,3 +69,7 @@ class VoiceActivityDetector:
                 else:
                     self.is_recording = False
             self.silence_samples += len(audio)
+
+    def get_rms(self):
+        """Gibt aktuellen Status zurück (für GUI-Anzeige)"""
+        return self.current_volume
